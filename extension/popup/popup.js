@@ -1,6 +1,11 @@
 const $ = (q) => document.querySelector(q);
 const pxsEl = $('#pxs'), slider = $('#slider'), nameEl = $('#name'), run = $('#run'), hint = $('#hint');
 const save = (o) => chrome.storage.local.set(o);
+
+// Speed is remembered per site; the last speed used anywhere is the starting point for new sites.
+let host = null;
+const speedOf = () => (host && s.sites[host]) ?? s.pxs;
+const setSpeed = (pxs) => save(host ? { pxs, sites: { ...s.sites, [host]: pxs } } : { pxs });
 const clamp = (n) => Math.round(Math.min(MAX, Math.max(MIN, n)));
 
 // Slider is logarithmic so both ends get room: 1 px/s up to 5000 px/s.
@@ -16,7 +21,7 @@ for (const [name, pxs] of PRESETS) {
   b.type = 'button';
   b.dataset.pxs = pxs;
   b.innerHTML = `${name}<small>${pxs} px/s</small>`;
-  b.onclick = () => save({ pxs });
+  b.onclick = () => setSpeed(pxs);
   $('#presets').append(b);
 }
 
@@ -30,7 +35,8 @@ function showSpeed(pxs) {
 }
 
 function render(s) {
-  showSpeed(s.pxs);
+  showSpeed(speedOf());
+  $('#site').textContent = host ? `for ${host}` : '';
   for (const name of ['mode', 'step', 'dir', 'atEnd'])
     for (const r of document.getElementsByName(name)) r.checked = r.value === String(s[name]);
   for (const r of document.getElementsByName('step')) r.disabled = s.mode !== 'step';
@@ -49,11 +55,12 @@ chrome.storage.onChanged.addListener((c) => {
   render(s);
 });
 
-slider.addEventListener('input', () => save({ pxs: fromSlider(+slider.value) }));
+slider.addEventListener('input', () => setSpeed(fromSlider(+slider.value)));
 pxsEl.addEventListener('change', () => {
   const n = parseFloat(pxsEl.value);
-  save({ pxs: Number.isFinite(n) ? clamp(n) : s.pxs });
-  pxsEl.value = Number.isFinite(n) ? clamp(n) : s.pxs;
+  const pxs = Number.isFinite(n) ? clamp(n) : speedOf();
+  setSpeed(pxs);
+  pxsEl.value = pxs;
 });
 pxsEl.addEventListener('keydown', (e) => e.key === 'Enter' && pxsEl.blur());
 
@@ -94,6 +101,7 @@ const setRun = (r) => {
   run.disabled = !r;
   run.classList.toggle('on', !!r?.running);
   run.textContent = r?.running ? 'Stop' : 'Start';
+  if (r?.host && r.host !== host) { host = r.host; render(s); }
   if (!r) hint.textContent = 'Can’t run on this page. Reload it, or try a normal website.';
 };
 chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {

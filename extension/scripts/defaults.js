@@ -2,7 +2,8 @@
 const DEFAULTS = {
   key: 's', fasterKey: ']', slowerKey: '[',
   holdKey: 'Shift',      // hold to pause, release to carry on
-  pxs: 40,              // speed in pixels per second
+  pxs: 40,              // speed in pixels per second (last used; the starting speed for new sites)
+  sites: {},            // hostname -> px/s, remembered automatically
   mode: 'smooth',       // 'smooth' = continuous glide, 'step' = jump a chunk of screen at a time
   step: 0.75,           // fraction of the screen per jump in step mode
   dir: 1,               // 1 = down, -1 = up

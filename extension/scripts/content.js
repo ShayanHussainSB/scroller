@@ -3,6 +3,8 @@ let s = { ...DEFAULTS };
 let on = false, looping = false, level = 0, held = false;
 let last = 0, carry = 0, sinceJump = 0, stuckFor = 0, pausedUntil = 0, target = null;
 const RAMP = 500; // ms to ease fully in or out
+const HOST = location.hostname.replace(/^www\./, '') || 'local';
+const speed = () => s.sites[HOST] ?? s.pxs;
 
 chrome.storage.local.get(DEFAULTS, (v) => (s = v));
 chrome.storage.onChanged.addListener((c) => {
@@ -37,13 +39,13 @@ function tick(now) {
   if (s.mode === 'step') {
     if (goal) sinceJump += dt;
     const jump = target.clientHeight * s.step;
-    if (sinceJump >= (jump / s.pxs) * 1000) {
+    if (sinceJump >= (jump / speed()) * 1000) {
       sinceJump = 0;
       target.scrollBy({ top: jump * s.dir, behavior: 'smooth' });
     }
   } else {
     const ease = level * level * (3 - 2 * level); // smoothstep
-    carry += (s.pxs * ease * dt) / 1000;
+    carry += (speed() * ease * dt) / 1000;
     const px = Math.floor(carry); // scrolling ignores sub-pixel amounts, so bank the fraction
     if (px) {
       carry -= px;
@@ -77,8 +79,8 @@ function stop() { on = false; held = false; badge(); }
 const toggle = () => (on ? stop() : start());
 
 function nudge(f) {
-  const pxs = Math.round(Math.min(MAX, Math.max(MIN, s.pxs * f)));
-  chrome.storage.local.set({ pxs });
+  const pxs = Math.round(Math.min(MAX, Math.max(MIN, speed() * f)));
+  chrome.storage.local.set({ pxs, sites: { ...s.sites, [HOST]: pxs } });
 }
 
 // On-page pill, inside a shadow root so site CSS can't touch it.
@@ -99,7 +101,7 @@ function badge() {
   }
   if (!host.isConnected) document.documentElement.append(host);
   pill.className = on ? 'on' : '';
-  pill.textContent = !on ? 'Stopped' : held ? 'Paused' : `${s.pxs} px/s${s.dir < 0 ? ' · up' : ''}`;
+  pill.textContent = !on ? 'Stopped' : held ? 'Paused' : `${speed()} px/s${s.dir < 0 ? ' · up' : ''}`;
   pill.style.opacity = 1;
   clearTimeout(hideTimer);
   if (!on) hideTimer = setTimeout(() => (pill.style.opacity = 0), 1200);
@@ -136,5 +138,5 @@ addEventListener('touchmove', manual, { passive: true, capture: true });
 
 chrome.runtime.onMessage.addListener((msg, _, reply) => {
   if (msg === 'toggle') toggle();
-  reply({ running: on });
+  reply({ running: on, host: HOST });
 });

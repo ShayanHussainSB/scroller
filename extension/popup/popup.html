@@ -64,6 +64,10 @@
   section { padding: 14px 16px; border-bottom: 1px solid var(--line); }
   section:last-of-type { border-bottom: 0; }
   h2 { margin: 0 0 10px; font-size: 13px; font-weight: 700; }
+  #site {
+    display: inline-block; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    vertical-align: bottom; margin-left: 4px; color: var(--ink-2); font-weight: 500;
+  }
 
   /* Speed */
   .readout { display: flex; align-items: baseline; gap: 6px; margin-bottom: 4px; }
@@ -155,7 +159,7 @@
 </header>
 
 <section aria-labelledby="h-speed">
-  <h2 id="h-speed">Speed</h2>
+  <h2 id="h-speed">Speed<span id="site"></span></h2>
   <div class="readout">
     <input id="pxs" type="number" min="1" max="5000" aria-label="Speed in pixels per second">
     <span class="unit">px/s</span>

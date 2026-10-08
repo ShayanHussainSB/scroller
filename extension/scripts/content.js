@@ -59,6 +59,7 @@ function tick(now) {
     : target.scrollTop <= 0;
   stuckFor = goal && atEdge && target.scrollTop === before ? stuckFor + dt : 0;
   if (stuckFor > 1500 && s.atEnd === 'stop') { stop(); level = 0; }
+  if (stuckFor > 1500 && s.atEnd === 'next') advance();
 
   requestAnimationFrame(tick);
 }
@@ -78,6 +79,52 @@ function start() {
 function stop() { on = false; held = false; badge(); }
 const toggle = () => (on ? stop() : start());
 
+// Best guess at the reader's "next chapter" control. Scored, because every site labels it differently.
+function findNext() {
+  let best = null, top = 1;
+  for (const el of document.querySelectorAll('a[href], button, [role="button"], link[rel~="next"][href]')) {
+    if (el.tagName !== 'LINK' && !el.getClientRects().length) continue; // hidden
+    const label = `${el.textContent} ${el.getAttribute('aria-label') || ''} ${el.title || ''}`.replace(/\s+/g, ' ').trim().toLowerCase();
+    const attrs = `${el.id} ${el.getAttribute('class') || ''} ${el.getAttribute('rel') || ''}`.toLowerCase();
+    if (/\bprev|\bback\b/.test(label + ' ' + attrs)) continue; // prev, previous, back (not background)
+    let score = 0;
+    if (/\bnext\b/.test(label)) score += 2;
+    if (/next/.test(attrs)) score += 1;
+    if (!score) continue;
+    if (el.tagName === 'LINK' || /\bnext\b/.test(el.getAttribute('rel') || '')) score += 1; // rel=next is the page saying so
+    if (/chap|\bch\b|episode|\bep\b/.test(label + ' ' + attrs)) score += 2;
+    if (/^[›»→>\s]+$/.test(label)) score += 1; // icon-only arrow
+    if (/comment|reply|post|article|story/.test(label)) score -= 2; // "next page of comments" is not the chapter
+    if (label.length > 40) score -= 2; // a sentence that happens to say "next"
+    if (score > top) { top = score; best = el; }
+  }
+  return best;
+}
+
+// Open the next chapter and resume there. A full page load picks up via sessionStorage;
+// readers that swap chapters in place just keep scrolling.
+const RESUME = 'scroller:resume';
+let advancedFrom = null;
+function advance() {
+  stuckFor = 0;
+  const el = s.dir > 0 && findNext();
+  if (!el || advancedFrom === location.href) { stop(); level = 0; return; } // nothing to follow, or it didn't move on
+  advancedFrom = location.href;
+  try { sessionStorage.setItem(RESUME, Date.now()); } catch {}
+  badge('Next chapter…');
+  if (el.tagName === 'LINK' || el.target === '_blank') location.href = el.href;
+  else el.click();
+}
+
+try {
+  const t = +sessionStorage.getItem(RESUME);
+  sessionStorage.removeItem(RESUME);
+  if (Date.now() - t < 60000) {
+    const go = () => setTimeout(start, 800); // let the first images settle
+    document.readyState === 'complete' ? go() : addEventListener('load', go, { once: true });
+  }
+} catch {}
+
 function nudge(f) {
   const pxs = Math.round(Math.min(MAX, Math.max(MIN, speed() * f)));
   chrome.storage.local.set({ pxs, sites: { ...s.sites, [HOST]: pxs } });
@@ -85,7 +132,7 @@ function nudge(f) {
 
 // On-page pill, inside a shadow root so site CSS can't touch it.
 let host, pill, hideTimer;
-function badge() {
+function badge(text) {
   if (!s.badge) return host?.remove();
   if (!host) {
     host = document.createElement('div');
@@ -101,7 +148,7 @@ function badge() {
   }
   if (!host.isConnected) document.documentElement.append(host);
   pill.className = on ? 'on' : '';
-  pill.textContent = !on ? 'Stopped' : held ? 'Paused' : `${speed()} px/s${s.dir < 0 ? ' · up' : ''}`;
+  pill.textContent = text || (!on ? 'Stopped' : held ? 'Paused' : `${speed()} px/s${s.dir < 0 ? ' · up' : ''}`);
   pill.style.opacity = 1;
   clearTimeout(hideTimer);
   if (!on) hideTimer = setTimeout(() => (pill.style.opacity = 0), 1200);

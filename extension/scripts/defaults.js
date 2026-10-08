@@ -7,7 +7,7 @@ const DEFAULTS = {
   mode: 'smooth',       // 'smooth' = continuous glide, 'step' = jump a chunk of screen at a time
   step: 0.75,           // fraction of the screen per jump in step mode
   dir: 1,               // 1 = down, -1 = up
-  atEnd: 'stop',        // 'stop' or 'wait' (wait = keep going once lazy-loaded pages appear)
+  atEnd: 'stop',        // 'stop', 'wait' (for lazy-loaded pages) or 'next' (open the next chapter)
   pauseOnManual: true,  // pause briefly when you scroll yourself
   badge: true,          // on-page status pill
 };

@@ -109,7 +109,7 @@
   .row > span { color: var(--ink); }
   .row.stack { flex-direction: column; align-items: stretch; gap: 8px; padding-bottom: 4px; }
   .row.stack .seg { display: flex; }
-  .row.stack .seg label { flex: 1; text-align: center; }
+  .row.stack .seg label { flex: 1 1 auto; text-align: center; white-space: nowrap; }
 
   .seg { display: inline-flex; padding: 3px; gap: 2px; border-radius: 9px; background: var(--paper-2); }
   .seg label { position: relative; }
@@ -203,9 +203,9 @@
   <div class="row stack">
     <span id="l-end">At the end</span>
     <div class="seg" role="radiogroup" aria-labelledby="l-end">
-      <label><input type="radio" name="atEnd" value="stop"><span>Stop</span></label>
-      <label><input type="radio" name="atEnd" value="wait"><span>Wait for more</span></label>
-      <label><input type="radio" name="atEnd" value="next"><span>Next chapter</span></label>
+      <label title="Stop scrolling"><input type="radio" name="atEnd" value="stop"><span>Stop</span></label>
+      <label title="Keep going if more pages load in"><input type="radio" name="atEnd" value="wait"><span>Wait</span></label>
+      <label title="Open the next chapter and keep reading"><input type="radio" name="atEnd" value="next"><span>Next chapter</span></label>
     </div>
   </div>
   <label class="row">

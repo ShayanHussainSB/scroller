@@ -1,0 +1,8 @@
+.DS_Store
+*.zip
+*.crx
+*.pem
+
+# local tooling
+.claude/
+.impeccable/

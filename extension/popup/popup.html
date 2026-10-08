@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<title>Scroller</title>
+<style>
+  @font-face {
+    font-family: 'Bricolage';
+    src: url(../fonts/bricolage.woff2) format('woff2');
+    font-weight: 400 800;
+  }
+
+  /* Ink-dark paper, made for reading at night. */
+  :root {
+    --paper: #17140f;
+    --paper-2: #221e18;
+    --ink: #f2ede3;
+    --ink-2: #a89f91;
+    --line: #342e26;
+    --red: #e5484d;
+    --red-ink: #fff;
+    --tone: #f2ede318;
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  ::selection { background: var(--red); color: var(--red-ink); }
+  body {
+    width: 304px; margin: 0;
+    font: 13px/1.4 'Bricolage', system-ui, sans-serif;
+    font-variant-numeric: tabular-nums;
+    background: var(--paper); color: var(--ink);
+    accent-color: var(--red);
+  }
+  html { scrollbar-width: thin; scrollbar-color: var(--line) transparent; }
+  :focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
+
+  header {
+    display: flex; align-items: center; justify-content: space-between;
+    position: relative;
+    padding: 16px 16px 14px;
+    border-bottom: 1px solid var(--line);
+  }
+  /* screentone fading in from the right, the one manga nod */
+  header::before {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: radial-gradient(var(--tone) 1px, transparent 1.4px) 0 0 / 5px 5px;
+    -webkit-mask: linear-gradient(90deg, transparent 25%, #000);
+  }
+  header > * { position: relative; }
+  h1 { margin: 0; font-size: 20px; font-weight: 800; letter-spacing: -0.02em; }
+  h1 span { color: var(--red); }
+
+  #run {
+    min-width: 84px; height: 36px; padding: 0 16px;
+    font: 700 13px 'Bricolage', system-ui, sans-serif;
+    border: 1.5px solid var(--ink); border-radius: 999px;
+    background: var(--paper); color: var(--ink); cursor: pointer;
+    transition: background .15s ease-out, color .15s ease-out, border-color .15s ease-out;
+  }
+  #run:hover { background: var(--paper-2); }
+  #run.on { background: var(--red); border-color: var(--red); color: var(--red-ink); }
+  #run:disabled { opacity: .45; cursor: default; }
+
+  section { padding: 14px 16px; border-bottom: 1px solid var(--line); }
+  section:last-of-type { border-bottom: 0; }
+  h2 { margin: 0 0 10px; font-size: 13px; font-weight: 700; }
+
+  /* Speed */
+  .readout { display: flex; align-items: baseline; gap: 6px; margin-bottom: 4px; }
+  #pxs {
+    field-sizing: content; min-width: 1ch; max-width: 5ch; padding: 0; border: 0; background: none; color: var(--ink);
+    font: 800 34px/1 'Bricolage', system-ui, sans-serif; letter-spacing: -0.03em;
+    font-variant-numeric: tabular-nums; -moz-appearance: textfield;
+  }
+  #pxs::-webkit-inner-spin-button { -webkit-appearance: none; }
+  .unit { color: var(--ink-2); font-weight: 600; }
+  #name { margin-left: auto; color: var(--red); font-weight: 700; }
+
+  input[type=range] {
+    -webkit-appearance: none; width: 100%; height: 28px; margin: 4px 0 10px; background: none; cursor: pointer;
+  }
+  input[type=range]::-webkit-slider-runnable-track {
+    height: 4px; border-radius: 2px;
+    background: linear-gradient(var(--red), var(--red)) 0 / var(--fill, 50%) 100% no-repeat, var(--line);
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 18px; height: 18px; margin-top: -7px; border-radius: 50%;
+    background: var(--ink); border: 3px solid var(--paper); box-shadow: 0 1px 4px #0005;
+  }
+
+  .presets { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .presets button {
+    min-height: 36px; padding: 4px 6px; border: 1px solid var(--line); border-radius: 8px;
+    background: var(--paper); color: var(--ink); cursor: pointer;
+    font: 600 12px/1.15 'Bricolage', system-ui, sans-serif;
+    transition: background .15s ease-out, border-color .15s ease-out;
+  }
+  .presets button small { display: block; color: var(--ink-2); font-weight: 500; font-size: 12px; }
+  .presets button:hover { background: var(--paper-2); }
+  .presets button[aria-pressed=true] { border-color: var(--red); background: var(--paper-2); }
+
+  /* Rows of settings */
+  .row { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 36px; }
+  .row + .row { margin-top: 6px; }
+  .row > span { color: var(--ink); }
+
+  .seg { display: inline-flex; padding: 3px; gap: 2px; border-radius: 9px; background: var(--paper-2); }
+  .seg label { position: relative; }
+  .seg input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+  .seg span {
+    display: block; padding: 6px 10px; border-radius: 7px; font-weight: 600; color: var(--ink-2);
+    transition: background .15s ease-out, color .15s ease-out;
+  }
+  .seg input:checked + span { background: var(--paper); color: var(--ink); box-shadow: 0 1px 3px #0002; }
+  .seg input:focus-visible + span { outline: 2px solid var(--red); outline-offset: 1px; }
+  .seg:has(input:disabled) { opacity: .45; }
+
+  .switch { position: relative; width: 38px; height: 22px; flex: none; }
+  .switch input { position: absolute; inset: 0; margin: 0; opacity: 0; cursor: pointer; z-index: 1; }
+  .switch i {
+    position: absolute; inset: 0; border-radius: 999px; background: var(--line);
+    transition: background .2s ease-out;
+  }
+  .switch i::after {
+    content: ""; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%;
+    background: #fff; box-shadow: 0 1px 2px #0004; transition: transform .2s cubic-bezier(.2,.8,.2,1);
+  }
+  .switch input:checked + i { background: var(--red); }
+  .switch input:checked + i::after { transform: translateX(16px); }
+  .switch input:focus-visible + i { outline: 2px solid var(--red); outline-offset: 2px; }
+
+  .keys { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .keys label { display: flex; flex-direction: column; gap: 6px; color: var(--ink-2); font-size: 12px; font-weight: 600; }
+  .key {
+    width: 100%; height: 32px; padding: 0 10px;
+    font: 700 13px 'Bricolage', system-ui, sans-serif;
+    border: 1px solid var(--line); border-bottom-width: 3px; border-radius: 7px;
+    background: var(--paper); color: var(--ink); cursor: pointer;
+  }
+  .key:hover { background: var(--paper-2); }
+  .key.listening { border-color: var(--red); color: var(--red); }
+
+  footer { padding: 10px 16px 14px; color: var(--ink-2); font-size: 12px; }
+
+  /* no animating into the saved state when the popup opens */
+  body:not(.ready) * { transition: none !important; }
+  @media (prefers-reduced-motion: reduce) {
+    * { transition-duration: 0s !important; }
+  }
+</style>
+
+<header>
+  <h1>Scroller<span>.</span></h1>
+  <button id="run" type="button">Start</button>
+</header>
+
+<section aria-labelledby="h-speed">
+  <h2 id="h-speed">Speed</h2>
+  <div class="readout">
+    <input id="pxs" type="number" min="1" max="5000" aria-label="Speed in pixels per second">
+    <span class="unit">px/s</span>
+    <span id="name" aria-live="polite"></span>
+  </div>
+  <input id="slider" type="range" min="0" max="1000" aria-label="Speed, slow to fast">
+  <div class="presets" id="presets"></div>
+</section>
+
+<section aria-labelledby="h-motion">
+  <h2 id="h-motion">Motion</h2>
+  <div class="row">
+    <span id="l-mode">Style</span>
+    <div class="seg" role="radiogroup" aria-labelledby="l-mode">
+      <label><input type="radio" name="mode" value="smooth"><span>Glide</span></label>
+      <label><input type="radio" name="mode" value="step"><span>Page jumps</span></label>
+    </div>
+  </div>
+  <div class="row">
+    <span id="l-step">Jump size</span>
+    <div class="seg" role="radiogroup" aria-labelledby="l-step">
+      <label><input type="radio" name="step" value="0.5"><span>½</span></label>
+      <label><input type="radio" name="step" value="0.75"><span>¾</span></label>
+      <label><input type="radio" name="step" value="1"><span>Full</span></label>
+    </div>
+  </div>
+  <div class="row">
+    <span id="l-dir">Direction</span>
+    <div class="seg" role="radiogroup" aria-labelledby="l-dir">
+      <label><input type="radio" name="dir" value="1"><span>Down</span></label>
+      <label><input type="radio" name="dir" value="-1"><span>Up</span></label>
+    </div>
+  </div>
+</section>
+
+<section aria-labelledby="h-behave">
+  <h2 id="h-behave">Behavior</h2>
+  <div class="row">
+    <span id="l-end">At the end</span>
+    <div class="seg" role="radiogroup" aria-labelledby="l-end">
+      <label><input type="radio" name="atEnd" value="stop"><span>Stop</span></label>
+      <label><input type="radio" name="atEnd" value="wait"><span>Keep waiting</span></label>
+    </div>
+  </div>
+  <label class="row">
+    <span>Pause when I scroll</span>
+    <span class="switch"><input type="checkbox" role="switch" id="pauseOnManual"><i></i></span>
+  </label>
+  <label class="row">
+    <span>Show status on page</span>
+    <span class="switch"><input type="checkbox" role="switch" id="badge"><i></i></span>
+  </label>
+</section>
+
+<section aria-labelledby="h-keys">
+  <h2 id="h-keys">Keys</h2>
+  <div class="keys">
+    <label>Start / stop<button class="key" data-k="key" type="button"></button></label>
+    <label>Faster<button class="key" data-k="fasterKey" type="button"></button></label>
+    <label>Slower<button class="key" data-k="slowerKey" type="button"></button></label>
+  </div>
+</section>
+
+<footer id="hint">Click a key, then press the one you want. Esc cancels.</footer>
+
+<script src="../scripts/defaults.js"></script>
+<script src="popup.js"></script>
+</html>

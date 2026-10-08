@@ -5,6 +5,7 @@ const DEFAULTS = {
   nudge: 1.25,          // faster multiplies speed by this, slower divides by it
   pxs: 40,              // speed in pixels per second (last used; the starting speed for new sites)
   sites: {},            // hostname -> px/s, remembered automatically
+  favs: [],             // hostnames you starred; none until you add them
   mode: 'smooth',       // 'smooth' = continuous glide, 'step' = jump a chunk of screen at a time
   step: 0.75,           // fraction of the screen per jump in step mode
   dir: 1,               // 1 = down, -1 = up

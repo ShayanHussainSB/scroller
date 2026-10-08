@@ -80,7 +80,6 @@ function showSpeed(pxs) {
 
 function render() {
   showSpeed(speedOf());
-  $('#site').textContent = host || '';
   for (const name of ['mode', 'step', 'dir', 'atEnd', 'nudge'])
     for (const r of document.getElementsByName(name)) r.checked = r.value === String(s[name]);
   $('#step-row').hidden = s.mode !== 'step';
@@ -106,40 +105,89 @@ function render() {
   renderSites();
 }
 
-// ── Saved sites: this site first, then A–Z. Forget with undo. ──
+// ── Sites: favorites (starred by you) on top, then every site with a saved speed ──
 const X = '<svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M2 2l8 8M10 2l-8 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
-function renderSites() {
-  const hosts = Object.keys(s.sites).sort((a, b) => (b === host) - (a === host) || a.localeCompare(b));
-  $('#site-count').textContent = hosts.length ? ` ${hosts.length}` : '';
-  $('#site-empty').hidden = hosts.length > 0;
-  $('#sites-intro').hidden = !hosts.length;
-  $('#site-list').replaceChildren(...hosts.map((h) => {
-    const li = document.createElement('li');
-    li.classList.toggle('here', h === host);
-    const name = document.createElement('span');
-    name.className = 'host';
-    name.title = h;
-    name.textContent = h; // hostnames come from pages: text only, never HTML
-    const v = document.createElement('span');
-    v.className = 'v';
-    v.textContent = `${s.sites[h]} px/s`;
-    const forget = document.createElement('button');
-    forget.type = 'button';
-    forget.innerHTML = X;
-    forget.setAttribute('aria-label', `Forget ${h}`);
-    forget.title = 'Forget this site';
-    forget.onclick = () => {
-      const i = hosts.indexOf(h), old = s.sites[h];
-      const { [h]: _, ...rest } = s.sites;
-      save({ sites: rest });
-      say(`Forgot ${h}.`, { undo: () => save({ sites: { ...s.sites, [h]: old } }) });
-      // keep keyboard focus in the list after the row disappears
-      requestAnimationFrame(() => ($('#site-list').querySelectorAll('button')[Math.min(i, hosts.length - 2)] || $('#t-sites')).focus());
-    };
-    li.append(name, v, forget);
-    return li;
-  }));
+const STAR = '<svg class="star" width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M7 1.4l1.7 3.6 3.9.5-2.9 2.7.8 3.9L7 10.2l-3.5 1.9.8-3.9L1.4 5.5l3.9-.5z"/></svg>';
+const isFav = (h) => s.favs.includes(h);
+const byHere = (a, b) => (b === host) - (a === host) || a.localeCompare(b);
+
+function toggleFav(h) {
+  const was = isFav(h), old = s.favs;
+  save({ favs: was ? s.favs.filter((f) => f !== h) : [...s.favs, h] });
+  say(was ? `${h} is off your favorites.` : `${h} is a favorite now. Good taste.`, { undo: () => save({ favs: old }) });
 }
+function forget(h) {
+  const old = { sites: s.sites, favs: s.favs };
+  const { [h]: _, ...rest } = s.sites;
+  save({ sites: rest, favs: s.favs.filter((f) => f !== h) });
+  say(`Forgot ${h}.`, { undo: () => save(old) });
+}
+
+function row(h) {
+  const li = document.createElement('li');
+  li.classList.toggle('here', h === host);
+  const fav = isFav(h);
+  const star = document.createElement('button');
+  star.type = 'button';
+  star.innerHTML = STAR;
+  star.dataset.star = h;
+  star.setAttribute('aria-pressed', fav);
+  star.setAttribute('aria-label', `Favorite ${h}`);
+  star.title = fav ? 'Remove from favorites' : 'Add to favorites';
+  star.onclick = () => { toggleFav(h); requestAnimationFrame(() => document.querySelector(`[data-star="${CSS.escape(h)}"]`)?.focus()); };
+  // favorites open in a new tab; hostnames come from pages, so text only, never HTML
+  const name = document.createElement(fav && h.includes('.') ? 'a' : 'span');
+  name.className = 'host';
+  name.textContent = h;
+  name.title = fav ? `Open ${h}` : h;
+  if (name.tagName === 'A') { name.href = `https://${h}/`; name.target = '_blank'; name.rel = 'noopener'; }
+  const v = document.createElement('span');
+  v.className = 'v';
+  v.textContent = h in s.sites ? `${s.sites[h]} px/s` : 'default';
+  const x = document.createElement('button');
+  x.type = 'button';
+  x.innerHTML = X;
+  x.setAttribute('aria-label', `Forget ${h}`);
+  x.dataset.forget = h;
+  x.title = 'Forget this site';
+  x.onclick = () => {
+    const li = x.closest('li'), next = (li.nextElementSibling || li.previousElementSibling)?.querySelector('[data-forget]').dataset.forget;
+    forget(h);
+    // keep keyboard focus in the list after the row disappears
+    requestAnimationFrame(() => ((next && document.querySelector(`[data-forget="${CSS.escape(next)}"]`)) || $('#t-sites')).focus());
+  };
+  li.append(star, name, v, x);
+  return li;
+}
+
+function renderSites() {
+  const favs = s.favs.slice().sort(byHere);
+  const others = Object.keys(s.sites).filter((h) => !isFav(h)).sort(byHere);
+  const total = favs.length + others.length;
+  $('#site-count').textContent = total ? ` ${total}` : '';
+  $('#fav-list').replaceChildren(...favs.map(row));
+  $('#site-list').replaceChildren(...others.map(row));
+  // nothing at all: one friendly empty state. Otherwise: Favorites (or a hint), then Other sites.
+  $('#site-empty').hidden = !!total;
+  $('#sites-intro').hidden = !total;
+  $('#fav-title').hidden = !total;
+  $('#fav-list').hidden = !favs.length;
+  $('#fav-empty').hidden = !total || !!favs.length;
+  $('#other-title').hidden = $('#site-list').hidden = !others.length;
+  // the header chip stars the site you're on
+  const chip = $('#site');
+  chip.hidden = !host;
+  if (host) {
+    chip.innerHTML = STAR;
+    const t = document.createElement('span');
+    t.textContent = host;
+    chip.append(t);
+    chip.setAttribute('aria-pressed', isFav(host));
+    chip.setAttribute('aria-label', `Favorite ${host}`);
+    chip.title = isFav(host) ? 'Remove from favorites' : 'Add to favorites';
+  }
+}
+$('#site').addEventListener('click', () => host && toggleFav(host));
 
 // ── Tabs (WAI-ARIA tabs pattern, automatic activation) ────────
 const tabs = [...document.querySelectorAll('[role=tab]')];

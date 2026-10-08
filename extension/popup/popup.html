@@ -98,10 +98,19 @@
   #status-text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   body.running #status-text { color: var(--ink); }
   .chip {
-    max-width: 150px; padding: 3px 9px; border: 1px solid var(--line-2); border-radius: 999px;
-    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink); font-size: 12px; font-weight: 600;
+    display: inline-flex; align-items: center; gap: 6px; max-width: 170px; height: 28px; padding: 0 10px 0 8px;
+    border: 1px solid var(--line-2); border-radius: 999px; background: none; cursor: pointer;
+    color: var(--ink); font-size: 12px; font-weight: 600;
+    transition: border-color .15s var(--ease), background .15s var(--ease);
   }
-  .chip:empty { display: none; }
+  .chip[hidden] { display: none; }
+  .chip:hover { border-color: var(--ink-2); background: var(--s1); }
+  .chip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .star { flex: none; color: var(--ink-2); transition: color .15s var(--ease), transform .2s var(--ease); }
+  .star path { fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linejoin: round; }
+  [aria-pressed=true] .star { color: var(--ink); }
+  [aria-pressed=true] .star path { fill: currentColor; }
+  button:active .star { transform: scale(.8) rotate(-15deg); }
 
   .offline {
     margin: 4px 16px 6px; padding: 12px 12px 12px 14px; border: 1px solid var(--line-2); border-radius: 12px;
@@ -190,6 +199,7 @@
   .row .text b { display: block; font-weight: 600; }
   .row .text span { display: block; color: var(--ink-2); font-size: 12px; }
   .row[hidden] { display: none; }
+  .row.stack { flex-direction: column; align-items: stretch; gap: 8px; }
 
   .seg { display: inline-flex; padding: 3px; gap: 2px; border-radius: 10px; background: var(--s2); }
   .seg.full { display: flex; }
@@ -240,23 +250,28 @@
 
   /* ── Sites ──────────────────────────────────────────── */
   .intro { margin: 0 0 10px; color: var(--ink-2); font-size: 12px; }
-  #site-list { margin: 0; padding: 0; list-style: none; max-height: 300px; overflow-y: auto; }
-  #site-list li {
-    display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 10px;
+  .list-title { display: flex; justify-content: space-between; margin: 4px 0 2px; font-weight: 700; }
+  .list-title + .list-title, .list + .list-title, .nofav + .list-title { margin-top: 14px; }
+  .list-title[hidden], .list[hidden], .nofav[hidden] { display: none; }
+  .nofav { margin: 2px 0 0; color: var(--ink-2); font-size: 12px; }
+  .list { margin: 0; padding: 0; list-style: none; max-height: 176px; overflow-y: auto; }
+  .list li {
+    display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; align-items: center; gap: 6px;
     min-height: 44px; border-top: 1px solid var(--line);
   }
-  #site-list li:first-child { border-top: 0; }
-  #site-list .host { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
-  #site-list li.here .host::after {
-    content: "you're here"; margin-left: 8px; padding: 2px 7px; border-radius: 999px;
+  .list li:first-child { border-top: 0; }
+  .list .host { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; color: var(--ink); text-decoration: none; }
+  .list a.host:hover { text-decoration: underline; text-underline-offset: 3px; }
+  .list li.here .host::after {
+    content: "here"; margin-left: 8px; padding: 2px 7px; border-radius: 999px;
     background: var(--s2); color: var(--ink-2); font-size: 12px; font-weight: 500;
   }
-  #site-list .v { color: var(--ink-2); font-weight: 600; }
-  #site-list button {
+  .list .v { color: var(--ink-2); font-weight: 600; margin-right: 2px; }
+  .list button {
     display: grid; place-items: center; width: 34px; height: 34px; padding: 0;
     border: 0; border-radius: 8px; background: none; color: var(--ink-2); cursor: pointer;
   }
-  #site-list button:hover { background: var(--s2); color: var(--ink); }
+  .list button:hover { background: var(--s2); color: var(--ink); }
   .empty { padding: 22px 8px 18px; text-align: center; color: var(--ink-2); }
   .empty b { display: block; margin-bottom: 4px; color: var(--ink); font-size: 14px; }
   .empty[hidden] { display: none; }
@@ -288,7 +303,7 @@
 
 <div class="status" role="status" aria-live="polite">
   <span id="status-text">Ready when you are.</span>
-  <span id="site" class="chip" title="Speed is saved for this site"></span>
+  <button id="site" class="chip" type="button" aria-pressed="false" hidden></button>
 </div>
 
 <div id="offline" class="offline" hidden>
@@ -378,9 +393,9 @@
     <div class="text"><b>Slower</b><span id="slower-desc"></span></div>
     <button class="key" data-k="slowerKey" type="button"></button>
   </div>
-  <div class="row">
-    <div class="text"><b id="l-nudge">Step</b><span>How big each tap is</span></div>
-    <div class="seg" role="radiogroup" aria-labelledby="l-nudge">
+  <div class="row stack">
+    <div class="text"><b id="l-nudge">Step</b><span>Size of each faster or slower tap</span></div>
+    <div class="seg full" role="radiogroup" aria-labelledby="l-nudge">
       <label><input type="radio" name="nudge" value="1.1"><span>10%</span></label>
       <label><input type="radio" name="nudge" value="1.25"><span>25%</span></label>
       <label><input type="radio" name="nudge" value="1.5"><span>50%</span></label>
@@ -392,7 +407,11 @@
 
 <section role="tabpanel" id="p-sites" aria-labelledby="t-sites" hidden>
   <p class="intro" id="sites-intro">Every site keeps its own speed. Sites you haven't tuned start at your last speed.</p>
-  <ul id="site-list"></ul>
+  <p class="list-title" id="fav-title">Favorites</p>
+  <ul class="list" id="fav-list"></ul>
+  <p class="nofav" id="fav-empty">None yet. Hit the star next to a site to pin it here, one click to open.</p>
+  <p class="list-title" id="other-title">Other sites</p>
+  <ul class="list" id="site-list"></ul>
   <div class="empty" id="site-empty">
     <b>No favorites yet.</b>
     Change the speed on any site and it'll remember.

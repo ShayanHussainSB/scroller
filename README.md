@@ -17,7 +17,7 @@
 
 - **One key to start and stop.** Defaults to `S`; change it to any key you like.
 - **Any speed, 1 to 5000 px/s.** A logarithmic slider gives the slow end as much room as the fast end. Type an exact number, or pick a preset from *Too damn slow* to *Too damn fast*.
-- **Remembers speed per site.** Every reader sizes its pages differently, so each site keeps its own speed. New sites start from the last speed you used.
+- **Remembers speed per site.** Every reader sizes its pages differently, so each site keeps its own speed. New sites start from the last speed you used. Open **Saved sites** in the popup to see every site's speed and forget any of them.
 - **Hold to pause.** Hold `Shift` to freeze on a dense panel; let go and it carries on.
 - **Next chapter, automatically.** At the end of a chapter Scroller can find the reader's *Next* button and keep going on the next one. A whole series, hands-free.
 - **Adjust while reading.** `]` speeds up 25%, `[` takes it back down a step.
@@ -56,6 +56,7 @@ Works in Chrome and other Chromium browsers (Edge, Brave, Arc, Opera, Vivaldi).
 | Slower | `[` | −20% per press (undoes one faster press), saved for this site |
 | Set an exact speed | | Drag the slider, type a number, or click a preset |
 | Remap a key | | Click it in the popup, press the new key (`Esc` cancels) |
+| See or forget saved sites | | Open **Saved sites** in the popup; × forgets a site |
 
 Keys are ignored while you're typing in a text box. Start, faster and slower never fire with `Ctrl`, `Cmd` or `Alt` held, so they won't clash with browser shortcuts. The hold key may be a modifier (`Shift`, `Ctrl`, `Alt`, `Cmd`) and still passes through to the page, so `Shift`+click keeps working.
 
@@ -82,7 +83,7 @@ Keys are ignored while you're typing in a text box. Start, faster and slower nev
 
 ## Privacy and permissions
 
-No accounts, no tracking, no analytics, no network requests. Settings, including your per-site speeds, stay in your browser's local extension storage.
+No accounts, no tracking, no analytics, no network requests. Settings, including your per-site speeds, stay in your browser's local extension storage. You can review and forget saved sites anytime under **Saved sites** in the popup; removing the extension deletes everything.
 
 | Permission | Why |
 | --- | --- |

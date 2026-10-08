@@ -2,6 +2,11 @@
 
 All notable changes to Scroller are listed here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
+## [1.2.0] - 2026-10-08
+
+### Added
+- **Saved sites** in the popup: a collapsible list of every site with a remembered speed, the current site first, each with a button to forget it.
+
 ## [1.1.0] - 2026-10-08
 
 ### Added
@@ -21,5 +26,6 @@ All notable changes to Scroller are listed here. The format follows [Keep a Chan
 ### Added
 - First release: one-key start/stop, 1–5000 px/s logarithmic speed with presets, glide or page-jump modes, up/down, stop or wait at the end, pause on manual scroll, on-page status pill, remappable faster/slower keys and a dark popup.
 
+[1.2.0]: https://github.com/ShayanHussainSB/scroller/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/ShayanHussainSB/scroller/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/ShayanHussainSB/scroller/releases/tag/v1.0.0

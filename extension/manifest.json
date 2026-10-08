@@ -5,6 +5,7 @@
   "description": "Hands-free auto-scroll for reading manga, webtoons and long pages. One key to start, any speed you like.",
   "homepage_url": "https://github.com/ShayanHussainSB/scroller",
   "permissions": ["storage"],
+  "background": { "service_worker": "scripts/background.js" },
   "icons": {
     "16": "icons/icon16.png",
     "32": "icons/icon32.png",

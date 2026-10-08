@@ -30,6 +30,7 @@ function tick(now) {
   const dt = Math.min(now - last, 100); // ignore long gaps (tab in background)
   last = now;
   if (!target.isConnected) target = findTarget();
+  if (on && reported !== location.href) report(); // in-place chapter change may have cleared the icon
 
   const goal = on && !held && now >= pausedUntil ? 1 : 0;
   level = goal > level ? Math.min(1, level + dt / RAMP) : Math.max(0, level - dt / RAMP);
@@ -77,6 +78,13 @@ function start() {
   badge();
 }
 function stop() { on = false; held = false; badge(); }
+
+// Tell the background script so the toolbar icon can show "ON".
+let reported = null;
+function report() {
+  reported = on && location.href;
+  try { chrome.runtime.sendMessage({ running: on })?.catch(() => {}); } catch {} // extension reloaded underneath us
+}
 const toggle = () => (on ? stop() : start());
 
 // Best guess at the reader's "next chapter" control. Scored, because every site labels it differently.
@@ -133,6 +141,7 @@ function nudge(f) {
 // On-page pill, inside a shadow root so site CSS can't touch it.
 let host, pill, hideTimer;
 function badge(text) {
+  if (on !== !!reported) report();
   if (!s.badge) return host?.remove();
   if (!host) {
     host = document.createElement('div');

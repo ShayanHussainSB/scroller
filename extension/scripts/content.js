@@ -1,10 +1,13 @@
 let s = { ...DEFAULTS };
-let running = false, last = 0, carry = 0, sinceJump = 0, stuckFor = 0, pausedUntil = 0, target = null;
+// on = what the user asked for; level eases 0..1 so starts, stops and pauses glide instead of jerk.
+let on = false, looping = false, level = 0;
+let last = 0, carry = 0, sinceJump = 0, stuckFor = 0, pausedUntil = 0, target = null;
+const RAMP = 500; // ms to ease fully in or out
 
 chrome.storage.local.get(DEFAULTS, (v) => (s = v));
 chrome.storage.onChanged.addListener((c) => {
   for (const k in c) if (k in DEFAULTS) s[k] = c[k].newValue;
-  if (running) badge();
+  if (on) badge();
 });
 
 // The page itself usually scrolls, but some readers scroll an inner box. Pick the biggest one that can.
@@ -22,21 +25,25 @@ function findTarget() {
 }
 
 function tick(now) {
-  if (!running) return;
   const dt = Math.min(now - last, 100); // ignore long gaps (tab in background)
   last = now;
-  if (now < pausedUntil) return requestAnimationFrame(tick);
+  if (!target.isConnected) target = findTarget();
+
+  const goal = on && now >= pausedUntil ? 1 : 0;
+  level = goal > level ? Math.min(1, level + dt / RAMP) : Math.max(0, level - dt / RAMP);
+  if (!on && !level) return (looping = false);
 
   const before = target.scrollTop;
   if (s.mode === 'step') {
-    sinceJump += dt;
+    if (goal) sinceJump += dt;
     const jump = target.clientHeight * s.step;
     if (sinceJump >= (jump / s.pxs) * 1000) {
       sinceJump = 0;
       target.scrollBy({ top: jump * s.dir, behavior: 'smooth' });
     }
   } else {
-    carry += (s.pxs * dt) / 1000;
+    const ease = level * level * (3 - 2 * level); // smoothstep
+    carry += (s.pxs * ease * dt) / 1000;
     const px = Math.floor(carry); // scrolling ignores sub-pixel amounts, so bank the fraction
     if (px) {
       carry -= px;
@@ -48,22 +55,26 @@ function tick(now) {
   const atEdge = s.dir > 0
     ? target.scrollTop + target.clientHeight >= target.scrollHeight - 1
     : target.scrollTop <= 0;
-  stuckFor = atEdge && target.scrollTop === before ? stuckFor + dt : 0;
-  if (s.atEnd === 'stop' && stuckFor > 1500) return stop();
+  stuckFor = goal && atEdge && target.scrollTop === before ? stuckFor + dt : 0;
+  if (stuckFor > 1500 && s.atEnd === 'stop') { stop(); level = 0; }
 
   requestAnimationFrame(tick);
 }
 
 function start() {
-  target = findTarget();
-  running = true;
-  last = performance.now();
-  carry = sinceJump = stuckFor = pausedUntil = 0;
-  requestAnimationFrame(tick);
+  on = true;
+  sinceJump = stuckFor = pausedUntil = 0;
+  if (!looping) {
+    looping = true;
+    target = findTarget();
+    last = performance.now();
+    carry = 0;
+    requestAnimationFrame(tick);
+  }
   badge();
 }
-function stop() { running = false; badge(); }
-const toggle = () => (running ? stop() : start());
+function stop() { on = false; badge(); }
+const toggle = () => (on ? stop() : start());
 
 function nudge(f) {
   const pxs = Math.round(Math.min(MAX, Math.max(MIN, s.pxs * f)));
@@ -87,11 +98,11 @@ function badge() {
     pill = root.querySelector('div');
   }
   if (!host.isConnected) document.documentElement.append(host);
-  pill.className = running ? 'on' : '';
-  pill.textContent = running ? `${s.pxs} px/s${s.dir < 0 ? ' · up' : ''}` : 'Stopped';
+  pill.className = on ? 'on' : '';
+  pill.textContent = on ? `${s.pxs} px/s${s.dir < 0 ? ' · up' : ''}` : 'Stopped';
   pill.style.opacity = 1;
   clearTimeout(hideTimer);
-  if (!running) hideTimer = setTimeout(() => (pill.style.opacity = 0), 1200);
+  if (!on) hideTimer = setTimeout(() => (pill.style.opacity = 0), 1200);
 }
 
 const same = (a, b) => a.length === 1 ? a.toLowerCase() === b.toLowerCase() : a === b;
@@ -101,18 +112,19 @@ addEventListener('keydown', (e) => {
   if (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)) return;
   if (e.ctrlKey || e.metaKey || e.altKey) return;
   if (same(e.key, s.key)) toggle();
-  else if (running && same(e.key, s.fasterKey)) nudge(1.25);
-  else if (running && same(e.key, s.slowerKey)) nudge(0.8);
+  else if (on && same(e.key, s.fasterKey)) nudge(1.25);
+  else if (on && same(e.key, s.slowerKey)) nudge(0.8);
   else return;
   e.preventDefault();
   e.stopPropagation();
 }, true);
 
-const manual = () => { if (running && s.pauseOnManual) pausedUntil = performance.now() + 2000; };
+// Your own scrolling wins instantly; we ease back in two seconds after you stop.
+const manual = () => { if (on && s.pauseOnManual) { pausedUntil = performance.now() + 2000; level = 0; } };
 addEventListener('wheel', manual, { passive: true, capture: true });
 addEventListener('touchmove', manual, { passive: true, capture: true });
 
 chrome.runtime.onMessage.addListener((msg, _, reply) => {
   if (msg === 'toggle') toggle();
-  reply({ running });
+  reply({ running: on });
 });

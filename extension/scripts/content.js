@@ -1,10 +1,15 @@
 let s = { ...DEFAULTS };
-let running = false, last = 0, carry = 0, sinceJump = 0, stuckFor = 0, pausedUntil = 0, target = null;
+// on = what the user asked for; level eases 0..1 so starts, stops and pauses glide instead of jerk.
+let on = false, looping = false, level = 0, held = false;
+let last = 0, carry = 0, sinceJump = 0, stuckFor = 0, pausedUntil = 0, target = null;
+const RAMP = 500; // ms to ease fully in or out
+const HOST = location.hostname.replace(/^www\./, '') || 'local';
+const speed = () => s.sites[HOST] ?? s.pxs;
 
 chrome.storage.local.get(DEFAULTS, (v) => (s = v));
 chrome.storage.onChanged.addListener((c) => {
   for (const k in c) if (k in DEFAULTS) s[k] = c[k].newValue;
-  if (running) badge();
+  if (on) badge();
 });
 
 // The page itself usually scrolls, but some readers scroll an inner box. Pick the biggest one that can.
@@ -22,21 +27,26 @@ function findTarget() {
 }
 
 function tick(now) {
-  if (!running) return;
   const dt = Math.min(now - last, 100); // ignore long gaps (tab in background)
   last = now;
-  if (now < pausedUntil) return requestAnimationFrame(tick);
+  if (!target.isConnected) target = findTarget();
+  if (on && reported !== location.href) report(); // in-place chapter change may have cleared the icon
+
+  const goal = on && !held && now >= pausedUntil ? 1 : 0;
+  level = goal > level ? Math.min(1, level + dt / RAMP) : Math.max(0, level - dt / RAMP);
+  if (!on && !level) return (looping = false);
 
   const before = target.scrollTop;
   if (s.mode === 'step') {
-    sinceJump += dt;
+    if (goal) sinceJump += dt;
     const jump = target.clientHeight * s.step;
-    if (sinceJump >= (jump / s.pxs) * 1000) {
+    if (sinceJump >= (jump / speed()) * 1000) {
       sinceJump = 0;
       target.scrollBy({ top: jump * s.dir, behavior: 'smooth' });
     }
   } else {
-    carry += (s.pxs * dt) / 1000;
+    const ease = level * level * (3 - 2 * level); // smoothstep
+    carry += (speed() * ease * dt) / 1000;
     const px = Math.floor(carry); // scrolling ignores sub-pixel amounts, so bank the fraction
     if (px) {
       carry -= px;
@@ -48,31 +58,90 @@ function tick(now) {
   const atEdge = s.dir > 0
     ? target.scrollTop + target.clientHeight >= target.scrollHeight - 1
     : target.scrollTop <= 0;
-  stuckFor = atEdge && target.scrollTop === before ? stuckFor + dt : 0;
-  if (s.atEnd === 'stop' && stuckFor > 1500) return stop();
+  stuckFor = goal && atEdge && target.scrollTop === before ? stuckFor + dt : 0;
+  if (stuckFor > 1500 && s.atEnd === 'stop') { stop(); level = 0; }
+  if (stuckFor > 1500 && s.atEnd === 'next') advance();
 
   requestAnimationFrame(tick);
 }
 
 function start() {
-  target = findTarget();
-  running = true;
-  last = performance.now();
-  carry = sinceJump = stuckFor = pausedUntil = 0;
-  requestAnimationFrame(tick);
+  on = true;
+  sinceJump = stuckFor = pausedUntil = 0;
+  if (!looping) {
+    looping = true;
+    target = findTarget();
+    last = performance.now();
+    carry = 0;
+    requestAnimationFrame(tick);
+  }
   badge();
 }
-function stop() { running = false; badge(); }
-const toggle = () => (running ? stop() : start());
+function stop() { on = false; held = false; badge(); }
+
+// Tell the background script so the toolbar icon can show "ON".
+let reported = null;
+function report() {
+  reported = on && location.href;
+  try { chrome.runtime.sendMessage({ running: on })?.catch(() => {}); } catch {} // extension reloaded underneath us
+}
+const toggle = () => (on ? stop() : start());
+
+// Best guess at the reader's "next chapter" control. Scored, because every site labels it differently.
+function findNext() {
+  let best = null, top = 1;
+  for (const el of document.querySelectorAll('a[href], button, [role="button"], link[rel~="next"][href]')) {
+    if (el.tagName !== 'LINK' && !el.getClientRects().length) continue; // hidden
+    const label = `${el.textContent} ${el.getAttribute('aria-label') || ''} ${el.title || ''}`.replace(/\s+/g, ' ').trim().toLowerCase();
+    const attrs = `${el.id} ${el.getAttribute('class') || ''} ${el.getAttribute('rel') || ''}`.toLowerCase();
+    if (/\bprev|\bback\b/.test(label + ' ' + attrs)) continue; // prev, previous, back (not background)
+    let score = 0;
+    if (/\bnext\b/.test(label)) score += 2;
+    if (/next/.test(attrs)) score += 1;
+    if (!score) continue;
+    if (el.tagName === 'LINK' || /\bnext\b/.test(el.getAttribute('rel') || '')) score += 1; // rel=next is the page saying so
+    if (/chap|\bch\b|episode|\bep\b/.test(label + ' ' + attrs)) score += 2;
+    if (/^[›»→>\s]+$/.test(label)) score += 1; // icon-only arrow
+    if (/comment|reply|post|article|story/.test(label)) score -= 2; // "next page of comments" is not the chapter
+    if (label.length > 40) score -= 2; // a sentence that happens to say "next"
+    if (score > top) { top = score; best = el; }
+  }
+  return best;
+}
+
+// Open the next chapter and resume there. A full page load picks up via sessionStorage;
+// readers that swap chapters in place just keep scrolling.
+const RESUME = 'scroller:resume';
+let advancedFrom = null;
+function advance() {
+  stuckFor = 0;
+  const el = s.dir > 0 && findNext();
+  if (!el || advancedFrom === location.href) { stop(); level = 0; return; } // nothing to follow, or it didn't move on
+  advancedFrom = location.href;
+  try { sessionStorage.setItem(RESUME, Date.now()); } catch {}
+  badge('Next chapter…');
+  if (el.tagName === 'LINK' || el.target === '_blank') location.href = el.href;
+  else el.click();
+}
+
+try {
+  const t = +sessionStorage.getItem(RESUME);
+  sessionStorage.removeItem(RESUME);
+  if (Date.now() - t < 60000) {
+    const go = () => setTimeout(start, 800); // let the first images settle
+    document.readyState === 'complete' ? go() : addEventListener('load', go, { once: true });
+  }
+} catch {}
 
 function nudge(f) {
-  const pxs = Math.round(Math.min(MAX, Math.max(MIN, s.pxs * f)));
-  chrome.storage.local.set({ pxs });
+  const pxs = Math.round(Math.min(MAX, Math.max(MIN, speed() * f)));
+  chrome.storage.local.set({ pxs, sites: { ...s.sites, [HOST]: pxs } });
 }
 
 // On-page pill, inside a shadow root so site CSS can't touch it.
 let host, pill, hideTimer;
-function badge() {
+function badge(text) {
+  if (on !== !!reported) report();
   if (!s.badge) return host?.remove();
   if (!host) {
     host = document.createElement('div');
@@ -87,11 +156,11 @@ function badge() {
     pill = root.querySelector('div');
   }
   if (!host.isConnected) document.documentElement.append(host);
-  pill.className = running ? 'on' : '';
-  pill.textContent = running ? `${s.pxs} px/s${s.dir < 0 ? ' · up' : ''}` : 'Stopped';
+  pill.className = on ? 'on' : '';
+  pill.textContent = text || (!on ? 'Stopped' : held ? 'Paused' : `${speed()} px/s${s.dir < 0 ? ' · up' : ''}`);
   pill.style.opacity = 1;
   clearTimeout(hideTimer);
-  if (!running) hideTimer = setTimeout(() => (pill.style.opacity = 0), 1200);
+  if (!on) hideTimer = setTimeout(() => (pill.style.opacity = 0), 1200);
 }
 
 const same = (a, b) => a.length === 1 ? a.toLowerCase() === b.toLowerCase() : a === b;
@@ -99,20 +168,31 @@ const same = (a, b) => a.length === 1 ? a.toLowerCase() === b.toLowerCase() : a 
 addEventListener('keydown', (e) => {
   const t = e.target;
   if (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)) return;
+  if (same(e.key, s.holdKey)) {
+    if (on && !held) { held = true; badge(); }
+    // modifiers pass through so Shift+click etc. keep working; other keys would scroll the page
+    if (on && !MODIFIERS.includes(e.key)) e.preventDefault();
+    return;
+  }
   if (e.ctrlKey || e.metaKey || e.altKey) return;
   if (same(e.key, s.key)) toggle();
-  else if (running && same(e.key, s.fasterKey)) nudge(1.25);
-  else if (running && same(e.key, s.slowerKey)) nudge(0.8);
+  else if (on && same(e.key, s.fasterKey)) nudge(1.25);
+  else if (on && same(e.key, s.slowerKey)) nudge(0.8);
   else return;
   e.preventDefault();
   e.stopPropagation();
 }, true);
 
-const manual = () => { if (running && s.pauseOnManual) pausedUntil = performance.now() + 2000; };
+const release = () => { if (held) { held = false; badge(); } };
+addEventListener('keyup', (e) => same(e.key, s.holdKey) && release(), true);
+addEventListener('blur', release); // key let go while the window was in the background
+
+// Your own scrolling wins instantly; we ease back in two seconds after you stop.
+const manual = () => { if (on && s.pauseOnManual) { pausedUntil = performance.now() + 2000; level = 0; } };
 addEventListener('wheel', manual, { passive: true, capture: true });
 addEventListener('touchmove', manual, { passive: true, capture: true });
 
 chrome.runtime.onMessage.addListener((msg, _, reply) => {
   if (msg === 'toggle') toggle();
-  reply({ running });
+  reply({ running: on, host: HOST });
 });

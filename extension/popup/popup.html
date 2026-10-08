@@ -64,6 +64,10 @@
   section { padding: 14px 16px; border-bottom: 1px solid var(--line); }
   section:last-of-type { border-bottom: 0; }
   h2 { margin: 0 0 10px; font-size: 13px; font-weight: 700; }
+  #site {
+    display: inline-block; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    vertical-align: bottom; margin-left: 4px; color: var(--ink-2); font-weight: 500;
+  }
 
   /* Speed */
   .readout { display: flex; align-items: baseline; gap: 6px; margin-bottom: 4px; }
@@ -103,6 +107,9 @@
   .row { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 36px; }
   .row + .row { margin-top: 6px; }
   .row > span { color: var(--ink); }
+  .row.stack { flex-direction: column; align-items: stretch; gap: 8px; padding-bottom: 4px; }
+  .row.stack .seg { display: flex; }
+  .row.stack .seg label { flex: 1 1 auto; text-align: center; white-space: nowrap; }
 
   .seg { display: inline-flex; padding: 3px; gap: 2px; border-radius: 9px; background: var(--paper-2); }
   .seg label { position: relative; }
@@ -129,7 +136,7 @@
   .switch input:checked + i::after { transform: translateX(16px); }
   .switch input:focus-visible + i { outline: 2px solid var(--red); outline-offset: 2px; }
 
-  .keys { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .keys { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px 8px; }
   .keys label { display: flex; flex-direction: column; gap: 6px; color: var(--ink-2); font-size: 12px; font-weight: 600; }
   .key {
     width: 100%; height: 32px; padding: 0 10px;
@@ -155,7 +162,7 @@
 </header>
 
 <section aria-labelledby="h-speed">
-  <h2 id="h-speed">Speed</h2>
+  <h2 id="h-speed">Speed<span id="site"></span></h2>
   <div class="readout">
     <input id="pxs" type="number" min="1" max="5000" aria-label="Speed in pixels per second">
     <span class="unit">px/s</span>
@@ -193,11 +200,12 @@
 
 <section aria-labelledby="h-behave">
   <h2 id="h-behave">Behavior</h2>
-  <div class="row">
+  <div class="row stack">
     <span id="l-end">At the end</span>
     <div class="seg" role="radiogroup" aria-labelledby="l-end">
-      <label><input type="radio" name="atEnd" value="stop"><span>Stop</span></label>
-      <label><input type="radio" name="atEnd" value="wait"><span>Keep waiting</span></label>
+      <label title="Stop scrolling"><input type="radio" name="atEnd" value="stop"><span>Stop</span></label>
+      <label title="Keep going if more pages load in"><input type="radio" name="atEnd" value="wait"><span>Wait</span></label>
+      <label title="Open the next chapter and keep reading"><input type="radio" name="atEnd" value="next"><span>Next chapter</span></label>
     </div>
   </div>
   <label class="row">
@@ -214,6 +222,7 @@
   <h2 id="h-keys">Keys</h2>
   <div class="keys">
     <label>Start / stop<button class="key" data-k="key" type="button"></button></label>
+    <label>Hold to pause<button class="key" data-k="holdKey" type="button"></button></label>
     <label>Faster<button class="key" data-k="fasterKey" type="button"></button></label>
     <label>Slower<button class="key" data-k="slowerKey" type="button"></button></label>
   </div>

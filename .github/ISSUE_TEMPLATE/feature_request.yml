@@ -1,0 +1,15 @@
+name: Feature request
+description: An idea that would make reading with Scroller better.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What's getting in the way?
+      description: Describe the reading situation, not just the solution.
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: What would help?

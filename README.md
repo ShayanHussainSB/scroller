@@ -10,22 +10,23 @@
 </p>
 
 <p align="center">
-  <img src="docs/popup.png" width="304" alt="Scroller popup: speed slider with presets, motion, behavior and key settings">
+  <img src="docs/popup.png" width="304" alt="Scroller popup: per-site speed with presets, motion, end-of-chapter behavior and key settings">
 </p>
 
 ## Features
 
 - **One key to start and stop.** Defaults to `S`; change it to any key you like.
 - **Any speed, 1 to 5000 px/s.** A logarithmic slider gives the slow end as much room as the fast end. Type an exact number, or pick a preset from *Too damn slow* to *Too damn fast*.
-- **Adjust while reading.** `]` speeds up, `[` slows down (25% per press). Both keys are remappable.
+- **Remembers speed per site.** Every reader sizes its pages differently, so each site keeps its own speed. New sites start from the last speed you used.
+- **Hold to pause.** Hold `Shift` to freeze on a dense panel; let go and it carries on.
+- **Next chapter, automatically.** At the end of a chapter Scroller can find the reader's *Next* button and keep going on the next one. A whole series, hands-free.
+- **Adjust while reading.** `]` speeds up 25%, `[` takes it back down a step.
 - **Glide or page jumps.** Scroll continuously, or jump ½, ¾ or a full screen at a time.
 - **Up or down.**
-- **Stops at the end**, or keeps waiting for more pages to lazy-load.
-- **Pauses when you scroll yourself**, then carries on after two seconds.
-- **On-page status pill** showing the current speed (optional).
+- **Gentle starts and stops.** Eases in and out instead of lurching.
+- **Pauses when you scroll yourself**, then eases back in after two seconds.
+- **Status at a glance.** A red **ON** badge on the toolbar icon, plus an optional pill on the page showing the speed.
 - **Works on tricky readers.** Handles sites that use CSS smooth scrolling and readers that scroll an inner panel instead of the page.
-
-No accounts, no tracking, no network requests. Settings live in your browser's local extension storage.
 
 ## Install
 
@@ -39,19 +40,32 @@ Scroller isn't on the Chrome Web Store yet, so you load it unpacked. It takes 30
 
 Tabs that were already open need a reload before the extension can run in them.
 
+**Updating:** pull or re-download, then click the reload arrow on Scroller's card in `chrome://extensions` and reload your reader tabs.
+
 Works in Chrome and other Chromium browsers (Edge, Brave, Arc, Opera, Vivaldi).
 
 ## Usage
 
-| Action | How |
-| --- | --- |
-| Start / stop | Press `S`, or click **Start** in the popup |
-| Faster | `]` |
-| Slower | `[` |
-| Change speed precisely | Drag the slider, type a number, or click a preset |
-| Remap a key | Click the key in the popup, then press the new one (`Esc` cancels) |
+| Action | Default | Notes |
+| --- | --- | --- |
+| Start / stop | `S` | Or click **Start** in the popup |
+| Hold to pause | `Shift` | Resumes when you let go |
+| Faster | `]` | +25% per press, saved for this site |
+| Slower | `[` | −20% per press (undoes one faster press), saved for this site |
+| Set an exact speed | | Drag the slider, type a number, or click a preset |
+| Remap a key | | Click it in the popup, press the new key (`Esc` cancels) |
 
-Keys are ignored while you're typing in a text box, and never fire with `Ctrl`, `Cmd` or `Alt` held, so they won't clash with browser shortcuts.
+Keys are ignored while you're typing in a text box. Start, faster and slower never fire with `Ctrl`, `Cmd` or `Alt` held, so they won't clash with browser shortcuts. The hold key may be a modifier (`Shift`, `Ctrl`, `Alt`, `Cmd`) and still passes through to the page, so `Shift`+click keeps working.
+
+### At the end of a page
+
+| Option | What happens |
+| --- | --- |
+| **Stop** | Scrolling stops at the bottom. |
+| **Wait** | Keeps going if more pages load in. Good for infinite-scroll readers. |
+| **Next chapter** | Finds the reader's next-chapter link or button, opens it, and keeps scrolling. |
+
+**How Next chapter finds the button.** It scores every visible link and button on its text, label, class names and `rel="next"`. Wording like "chapter" and arrow icons count in its favor. Anything that says *prev*, *back* or *comments* is skipped. If it can't find one, or clicking it doesn't move the page on, Scroller stops rather than looping. It works with readers that load a new page and with readers that swap chapters in place. Two limits: auto-resume can't cross to a different website, and it only applies when scrolling down.
 
 ### Speed guide
 
@@ -64,6 +78,21 @@ Keys are ignored while you're typing in a text box, and never fire with `Ctrl`, 
 | Fast | 500 | Skimming |
 | Too damn fast | 3000 | Flying through to find your place |
 
+## Privacy and permissions
+
+No accounts, no tracking, no analytics, no network requests. Settings, including your per-site speeds, stay in your browser's local extension storage.
+
+| Permission | Why |
+| --- | --- |
+| `storage` | Saves your settings and per-site speeds locally. |
+| Runs on all sites | Scroller has to listen for your start key on whatever page you're reading. It does nothing until you press it. |
+
+## Troubleshooting
+
+- **Nothing happens when I press the key.** Reload the tab; pages opened before installing or updating don't have Scroller yet. Browser pages like `chrome://` and the Chrome Web Store don't allow extensions at all.
+- **Next chapter picked the wrong button, or none.** Every site is different. Switch *At the end* to **Stop**, and please [open an issue](https://github.com/ShayanHussainSB/scroller/issues/new?template=bug_report.yml) with the reader's address so detection can improve.
+- **It stops when I touch the trackpad.** That's *Pause when I scroll*; it eases back in after two seconds. Turn it off in the popup if you'd rather it didn't.
+
 ## Project structure
 
 ```
@@ -71,7 +100,8 @@ extension/
 ├── manifest.json        Chrome extension manifest (MV3)
 ├── scripts/
 │   ├── defaults.js      Shared settings, limits and presets
-│   └── content.js       The scroller that runs on each page
+│   ├── content.js       The scroller that runs on each page
+│   └── background.js    Toolbar icon badge
 ├── popup/
 │   ├── popup.html       Settings popup (markup + styles)
 │   └── popup.js         Popup behavior
@@ -84,7 +114,7 @@ No build step and no dependencies. Edit a file, hit reload on `chrome://extensio
 
 ## Contributing
 
-Issues and pull requests are welcome. Please keep it dependency-free and small, and test on at least one real reader site before opening a PR.
+Issues and pull requests are welcome. Please keep it dependency-free and small, and test on at least one real reader site before opening a PR. See [CHANGELOG.md](CHANGELOG.md) for what changed in each release.
 
 ## License
 

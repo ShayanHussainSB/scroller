@@ -33,9 +33,10 @@
 - **One key to start and stop.** Defaults to `S`; change it to any key you like.
 - **Any speed, 1 to 5000 px/s.** A logarithmic slider gives the slow end as much room as the fast end. Type an exact number, or pick a preset from *Too damn slow* to *Too damn fast*.
 - **Remembers speed per site.** Every reader sizes its pages differently, so each site keeps its own speed. New sites start from the last speed you used. The **Sites** tab lists every site's speed; forget any of them (with undo).
+- **Favorite sites.** Star the readers you love, from the site chip in the popup or the Sites tab. Favorites are pinned to the top and open in one click. Nothing is starred until you star it.
 - **Hold to pause.** Hold `Shift` to freeze on a dense panel; let go and it carries on.
 - **Next chapter, automatically.** At the end of a chapter Scroller can find the reader's *Next* button and keep going on the next one. A whole series, hands-free.
-- **Adjust while reading.** `]` speeds up 25%, `[` takes it back down a step.
+- **Adjust while reading.** `]` speeds up, `[` slows down. Pick how big each tap is on the Keys tab: 10%, 25%, 50% or 2×.
 - **Glide or page jumps.** Scroll continuously, or jump ½, ¾ or a full screen at a time.
 - **Up or down.**
 - **Gentle starts and stops.** Eases in and out instead of lurching.
@@ -67,12 +68,13 @@ Works in Chrome and other Chromium browsers (Edge, Brave, Arc, Opera, Vivaldi).
 | --- | --- | --- |
 | Start / stop | `S` | Or click **Start** in the popup |
 | Hold to pause | `Shift` | Resumes when you let go |
-| Faster | `]` | +25% per press, saved for this site |
-| Slower | `[` | −20% per press (undoes one faster press), saved for this site |
+| Faster | `]` | +25% per press by default (Keys → *Step*), saved for this site |
+| Slower | `[` | Undoes one faster press, saved for this site |
 | Set an exact speed | | Drag the slider, type a number, or click a preset |
 | Remap a key | | Click it in the popup, press the new key (`Esc` cancels) |
 | See or forget saved sites | | **Sites** tab; × forgets a site, **Undo** brings it back |
 | Reset keys | | **Keys** tab → *Restore default keys* |
+| Favorite a site | | Click the star on the site chip, or next to any site in the **Sites** tab |
 
 Keys are ignored while you're typing in a text box. Start, faster and slower never fire with `Ctrl`, `Cmd` or `Alt` held, so they won't clash with browser shortcuts. The hold key may be a modifier (`Shift`, `Ctrl`, `Alt`, `Cmd`) and still passes through to the page, so `Shift`+click keeps working.
 
@@ -99,7 +101,7 @@ Keys are ignored while you're typing in a text box. Start, faster and slower nev
 
 ## Privacy and permissions
 
-No accounts, no tracking, no analytics, no network requests. Settings, including your per-site speeds, stay in your browser's local extension storage. You can review and forget saved sites anytime in the popup's **Sites** tab; removing the extension deletes everything.
+No accounts, no tracking, no analytics, no network requests. Settings, including your per-site speeds, stay in your browser's local extension storage. You can review, star and forget saved sites anytime in the popup's **Sites** tab; removing the extension deletes everything.
 
 | Permission | Why |
 | --- | --- |

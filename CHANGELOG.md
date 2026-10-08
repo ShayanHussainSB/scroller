@@ -10,6 +10,7 @@ All notable changes to Scroller are listed here. The format follows [Keep a Chan
 - **Hold to pause** key, `Shift` by default and remappable. The on-page pill reads "Paused" while it's held.
 - **ON badge** on the toolbar icon in tabs where Scroller is running.
 - Scrolling eases in and out on start, stop and resume.
+- Releases ship a ready-to-load `scroller-x.y.z.zip`.
 
 ### Changed
 - *At the end* choices are now Stop, Wait and Next chapter, on a full-width row.

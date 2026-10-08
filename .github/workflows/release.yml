@@ -1,0 +1,48 @@
+name: Release
+
+# Push a tag like v1.2.0 from main to publish a release with a ready-to-load zip.
+on:
+  push:
+    tags: ['v*.*.*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node .github/scripts/check.mjs
+
+      - name: Tag must match manifest version
+        run: |
+          v=$(node -p "require('./extension/manifest.json').version")
+          [ "v$v" = "$GITHUB_REF_NAME" ] || { echo "Tag $GITHUB_REF_NAME does not match manifest version $v"; exit 1; }
+
+      - name: Build zip
+        run: cd extension && zip -r "../scroller-${GITHUB_REF_NAME#v}.zip" . -x '.*'
+
+      - name: Release notes from CHANGELOG
+        run: |
+          awk -v v="${GITHUB_REF_NAME#v}" '
+            $0 ~ "^## \\[" v "\\]" { on = 1; next }
+            on && /^## \[/ { exit }
+            on && /^\[/ { exit }
+            on { print }
+          ' CHANGELOG.md > notes.md
+          cat >> notes.md <<'MD'
+
+          ### Install
+          Download **scroller-*.zip** below and unzip it. Open `chrome://extensions`, turn on **Developer mode**, click **Load unpacked** and select the unzipped folder. Already installed? Replace the folder and click reload on Scroller's card.
+          MD
+
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" scroller-*.zip \
+            --title "Scroller ${GITHUB_REF_NAME#v}" --notes-file notes.md --verify-tag

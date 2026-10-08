@@ -32,15 +32,17 @@
 
 Scroller isn't on the Chrome Web Store yet, so you load it unpacked. It takes 30 seconds.
 
-1. [Download this repo](https://github.com/ShayanHussainSB/scroller/archive/refs/heads/main.zip) and unzip it, or `git clone https://github.com/ShayanHussainSB/scroller.git`.
+1. Download **`scroller-x.y.z.zip`** from the [latest release](https://github.com/ShayanHussainSB/scroller/releases/latest) and unzip it.
 2. Open `chrome://extensions` in Chrome.
 3. Turn on **Developer mode** (top right).
-4. Click **Load unpacked** and select the **`extension`** folder.
+4. Click **Load unpacked** and select the unzipped folder.
 5. Pin Scroller from the puzzle-piece menu so the icon is one click away.
+
+Prefer the source? `git clone https://github.com/ShayanHussainSB/scroller.git` and load the **`extension`** folder instead.
 
 Tabs that were already open need a reload before the extension can run in them.
 
-**Updating:** pull or re-download, then click the reload arrow on Scroller's card in `chrome://extensions` and reload your reader tabs.
+**Updating:** replace the folder with the new release (or `git pull`), click the reload arrow on Scroller's card in `chrome://extensions`, then reload your reader tabs. Your settings are kept. [Watch releases](https://github.com/ShayanHussainSB/scroller/subscription) to hear about new versions.
 
 Works in Chrome and other Chromium browsers (Edge, Brave, Arc, Opera, Vivaldi).
 
@@ -108,6 +110,7 @@ extension/
 ├── fonts/               Bricolage Grotesque (SIL OFL 1.1)
 └── icons/               Toolbar and store icons
 docs/                    README assets
+.github/                 Checks, release workflow, issue and PR templates
 ```
 
 No build step and no dependencies. Edit a file, hit reload on `chrome://extensions`, done.
@@ -115,6 +118,24 @@ No build step and no dependencies. Edit a file, hit reload on `chrome://extensio
 ## Contributing
 
 Issues and pull requests are welcome. Please keep it dependency-free and small, and test on at least one real reader site before opening a PR. See [CHANGELOG.md](CHANGELOG.md) for what changed in each release.
+
+`main` is protected: changes land through pull requests, and the **Check** workflow must pass. Run it locally first:
+
+```sh
+node .github/scripts/check.mjs
+```
+
+It verifies the manifest, that every file it references exists, that all scripts parse, and that the version has a changelog entry.
+
+### Releasing
+
+1. In a PR, bump `version` in `extension/manifest.json` and add a matching section to `CHANGELOG.md`.
+2. After it merges, tag `main` and push the tag:
+   ```sh
+   git switch main && git pull
+   git tag -a v1.2.0 -m "Scroller 1.2.0" && git push origin v1.2.0
+   ```
+3. The **Release** workflow checks that the tag matches the manifest, zips the `extension` folder, and publishes a GitHub release with the changelog section as its notes.
 
 ## License
 

@@ -24,7 +24,7 @@ body:
     id: style
     attributes:
       label: Motion style
-      options: [Glide, Page jumps]
+      options: [Glide, Jumps]
   - type: input
     id: browser
     attributes:

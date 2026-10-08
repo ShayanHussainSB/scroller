@@ -5,7 +5,18 @@ All notable changes to Scroller are listed here. The format follows [Keep a Chan
 ## [1.2.0] - 2026-10-08
 
 ### Added
-- **Saved sites** in the popup: a collapsible list of every site with a remembered speed, the current site first, each with a button to forget it.
+- **Sites** tab: every site with a remembered speed, the current site first, each with a button to forget it (and Undo).
+- **Reload tab** banner when the popup can't reach the page, instead of a disabled button.
+- Status line under the header showing whether it's scrolling and which site you're on.
+- Speed in human terms: how long one screen takes, plus a line of personality per preset.
+- **Restore default keys**, with Undo.
+- The Start button shows its key, and a strip on the Read tab lists every shortcut.
+
+### Changed
+- Popup redesigned: pure black theme and four tabs (Read, Feel, Keys, Sites) that each fit without scrolling. Red now only means "scrolling right now", with speed lines streaming through the header while it runs.
+- *At the end* explains the selected option on screen instead of in a tooltip. Jump size only shows in Jumps mode. "Page jumps" is now "Jumps".
+- Larger tap targets, screen-reader labels for the slider and key buttons, and announced status messages.
+- The on-page status pill is black to match.
 
 ## [1.1.0] - 2026-10-08
 

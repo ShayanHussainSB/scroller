@@ -81,11 +81,13 @@ function showSpeed(pxs) {
 function render() {
   showSpeed(speedOf());
   $('#site').textContent = host || '';
-  for (const name of ['mode', 'step', 'dir', 'atEnd'])
+  for (const name of ['mode', 'step', 'dir', 'atEnd', 'nudge'])
     for (const r of document.getElementsByName(name)) r.checked = r.value === String(s[name]);
   $('#step-row').hidden = s.mode !== 'step';
   $('#mode-desc').textContent = MODE[s.mode];
   $('#end-desc').textContent = END[s.atEnd];
+  $('#faster-desc').textContent = s.nudge === 2 ? 'Doubles it per tap' : `+${Math.round((s.nudge - 1) * 100)}% per tap`;
+  $('#slower-desc').textContent = s.nudge === 2 ? 'Halves it per tap' : `−${Math.round((1 - 1 / s.nudge) * 100)}% per tap`;
   $('#pauseOnManual').checked = s.pauseOnManual;
   $('#badge').checked = s.badge;
   for (const b of document.querySelectorAll('.key')) {

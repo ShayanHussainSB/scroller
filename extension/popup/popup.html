@@ -371,12 +371,21 @@
     <button class="key" data-k="holdKey" type="button"></button>
   </div>
   <div class="row">
-    <div class="text"><b>Faster</b><span>+25% per tap</span></div>
+    <div class="text"><b>Faster</b><span id="faster-desc"></span></div>
     <button class="key" data-k="fasterKey" type="button"></button>
   </div>
   <div class="row">
-    <div class="text"><b>Slower</b><span>Takes it down a notch</span></div>
+    <div class="text"><b>Slower</b><span id="slower-desc"></span></div>
     <button class="key" data-k="slowerKey" type="button"></button>
+  </div>
+  <div class="row">
+    <div class="text"><b id="l-nudge">Step</b><span>How big each tap is</span></div>
+    <div class="seg" role="radiogroup" aria-labelledby="l-nudge">
+      <label><input type="radio" name="nudge" value="1.1"><span>10%</span></label>
+      <label><input type="radio" name="nudge" value="1.25"><span>25%</span></label>
+      <label><input type="radio" name="nudge" value="1.5"><span>50%</span></label>
+      <label><input type="radio" name="nudge" value="2"><span>2×</span></label>
+    </div>
   </div>
   <button class="ghost" id="reset-keys" type="button">Restore default keys</button>
 </section>

@@ -133,8 +133,11 @@ try {
   }
 } catch {}
 
-function nudge(f) {
-  const pxs = Math.round(Math.min(MAX, Math.max(MIN, speed() * f)));
+function nudge(up) {
+  const cur = speed();
+  let pxs = Math.round(up ? cur * s.nudge : cur / s.nudge);
+  if (pxs === cur) pxs += up ? 1 : -1; // small speeds would otherwise round back to themselves
+  pxs = Math.min(MAX, Math.max(MIN, pxs));
   chrome.storage.local.set({ pxs, sites: { ...s.sites, [HOST]: pxs } });
 }
 
@@ -176,8 +179,8 @@ addEventListener('keydown', (e) => {
   }
   if (e.ctrlKey || e.metaKey || e.altKey) return;
   if (same(e.key, s.key)) toggle();
-  else if (on && same(e.key, s.fasterKey)) nudge(1.25);
-  else if (on && same(e.key, s.slowerKey)) nudge(0.8);
+  else if (on && same(e.key, s.fasterKey)) nudge(true);
+  else if (on && same(e.key, s.slowerKey)) nudge(false);
   else return;
   e.preventDefault();
   e.stopPropagation();

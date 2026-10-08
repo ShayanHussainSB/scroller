@@ -37,12 +37,48 @@ function showSpeed(pxs) {
 function render(s) {
   showSpeed(speedOf());
   $('#site').textContent = host ? `for ${host}` : '';
+  renderSites();
   for (const name of ['mode', 'step', 'dir', 'atEnd'])
     for (const r of document.getElementsByName(name)) r.checked = r.value === String(s[name]);
   for (const r of document.getElementsByName('step')) r.disabled = s.mode !== 'step';
   $('#pauseOnManual').checked = s.pauseOnManual;
   $('#badge').checked = s.badge;
   for (const b of document.querySelectorAll('.key')) if (!b.classList.contains('listening')) b.textContent = keyLabel(s[b.dataset.k]);
+}
+
+// Saved sites: this site first, then A–Z. Each can be forgotten (it then follows the last-used speed).
+const X = '<svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M2 2l8 8M10 2l-8 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
+function renderSites() {
+  const hosts = Object.keys(s.sites).sort((a, b) => (b === host) - (a === host) || a.localeCompare(b));
+  $('#site-count').textContent = hosts.length || '';
+  $('#site-empty').hidden = hosts.length > 0;
+  $('#site-list').replaceChildren(...hosts.map((h) => {
+    const li = document.createElement('li');
+    const name = document.createElement('span');
+    name.className = 'host';
+    name.title = h;
+    name.textContent = h; // hostnames come from pages: text only, never HTML
+    const here = document.createElement('span');
+    here.className = 'here';
+    here.textContent = h === host ? 'this site' : '';
+    const v = document.createElement('span');
+    v.className = 'v';
+    v.textContent = `${s.sites[h]} px/s`;
+    const forget = document.createElement('button');
+    forget.type = 'button';
+    forget.innerHTML = X;
+    forget.setAttribute('aria-label', `Forget ${h}`);
+    forget.title = 'Forget this site';
+    forget.onclick = () => {
+      const i = hosts.indexOf(h);
+      const { [h]: _, ...rest } = s.sites;
+      save({ sites: rest });
+      // keep keyboard focus in the list after the row disappears
+      requestAnimationFrame(() => ($('#site-list').querySelectorAll('button')[Math.min(i, hosts.length - 2)] || $('#sites summary')).focus());
+    };
+    li.append(name, here, v, forget);
+    return li;
+  }));
 }
 
 let s = { ...DEFAULTS };

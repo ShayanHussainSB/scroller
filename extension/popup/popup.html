@@ -147,6 +147,36 @@
   .key:hover { background: var(--paper-2); }
   .key.listening { border-color: var(--red); color: var(--red); }
 
+  /* Saved sites: collapsed by default */
+  .sites { padding-top: 4px; padding-bottom: 4px; }
+  .sites summary {
+    display: flex; align-items: center; gap: 8px; min-height: 36px;
+    font-weight: 700; cursor: pointer; list-style: none;
+  }
+  .sites summary::-webkit-details-marker { display: none; }
+  .sites summary:focus-visible { outline-offset: 0; border-radius: 4px; }
+  #site-count { color: var(--ink-2); font-weight: 500; }
+  .sites summary::after {
+    content: ""; margin-left: auto; width: 7px; height: 7px; margin-right: 3px;
+    border: solid var(--ink-2); border-width: 0 2px 2px 0; transform: translateY(-2px) rotate(45deg);
+    transition: transform .2s ease-out;
+  }
+  .sites details[open] summary::after { transform: translateY(1px) rotate(-135deg); }
+  #site-list { margin: 0 0 8px; padding: 0; list-style: none; max-height: 184px; overflow-y: auto; }
+  #site-list li {
+    display: grid; grid-template-columns: minmax(0, 1fr) auto auto auto; align-items: center; gap: 8px;
+    min-height: 36px; border-top: 1px solid var(--line);
+  }
+  #site-list .host { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #site-list .here { color: var(--red); font-size: 12px; font-weight: 600; }
+  #site-list .v { color: var(--ink-2); font-weight: 600; }
+  #site-list button {
+    display: grid; place-items: center; width: 28px; height: 28px; padding: 0;
+    border: 0; border-radius: 6px; background: none; color: var(--ink-2); cursor: pointer;
+  }
+  #site-list button:hover { background: var(--paper-2); color: var(--ink); }
+  #site-empty { margin: 0 0 10px; color: var(--ink-2); }
+
   footer { padding: 10px 16px 14px; color: var(--ink-2); font-size: 12px; }
 
   /* no animating into the saved state when the popup opens */
@@ -170,6 +200,14 @@
   </div>
   <input id="slider" type="range" min="0" max="1000" aria-label="Speed, slow to fast">
   <div class="presets" id="presets"></div>
+</section>
+
+<section class="sites">
+  <details id="sites">
+    <summary>Saved sites <span id="site-count"></span></summary>
+    <ul id="site-list"></ul>
+    <p id="site-empty">Change the speed on a site and it's remembered here.</p>
+  </details>
 </section>
 
 <section aria-labelledby="h-motion">

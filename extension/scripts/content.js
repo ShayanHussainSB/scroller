@@ -148,10 +148,10 @@ function badge(text) {
     const root = host.attachShadow({ mode: 'open' });
     root.innerHTML = `<style>
       div{position:fixed;right:16px;bottom:16px;z-index:2147483647;padding:7px 12px;border-radius:999px;
-        font:600 12px/1 system-ui,sans-serif;font-variant-numeric:tabular-nums;color:#f6f3ec;background:#16130fe6;
-        box-shadow:0 4px 14px #0004;transition:opacity .25s ease-out;pointer-events:none}
+        font:600 12px/1 system-ui,sans-serif;font-variant-numeric:tabular-nums;color:#f5f5f5;background:#000000eb;
+        border:1px solid #333;box-shadow:0 6px 20px #0006;transition:opacity .25s ease-out;pointer-events:none}
       div.on::before{content:"";display:inline-block;width:6px;height:6px;margin-right:7px;border-radius:50%;
-        background:#e5484d;vertical-align:1px}
+        background:#ff4f5a;vertical-align:1px}
     </style><div></div>`;
     pill = root.querySelector('div');
   }
@@ -194,5 +194,5 @@ addEventListener('touchmove', manual, { passive: true, capture: true });
 
 chrome.runtime.onMessage.addListener((msg, _, reply) => {
   if (msg === 'toggle') toggle();
-  reply({ running: on, host: HOST });
+  reply({ running: on, host: HOST, vh: innerHeight });
 });

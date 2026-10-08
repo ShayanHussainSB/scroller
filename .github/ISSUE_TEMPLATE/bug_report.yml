@@ -1,0 +1,40 @@
+name: Bug report
+description: Something doesn't scroll, stops early, or picks the wrong next chapter.
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What you expected, and what Scroller did instead.
+    validations:
+      required: true
+  - type: input
+    id: site
+    attributes:
+      label: Reader site
+      description: The website (or page address) where it happens. Leave out anything private.
+      placeholder: https://example.com/series/chapter-12
+  - type: dropdown
+    id: at-end
+    attributes:
+      label: "\"At the end\" setting"
+      options: [Stop, Wait, Next chapter, Not relevant]
+  - type: dropdown
+    id: style
+    attributes:
+      label: Motion style
+      options: [Glide, Page jumps]
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and version
+      placeholder: Chrome 141 on macOS
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Scroller version
+      description: Shown on Scroller's card in chrome://extensions.
+      placeholder: 1.1.0

@@ -1,6 +1,7 @@
 // Shared by the page script and the popup.
 const DEFAULTS = {
   key: 's', fasterKey: ']', slowerKey: '[',
+  holdKey: 'Shift',      // hold to pause, release to carry on
   pxs: 40,              // speed in pixels per second
   mode: 'smooth',       // 'smooth' = continuous glide, 'step' = jump a chunk of screen at a time
   step: 0.75,           // fraction of the screen per jump in step mode
@@ -10,6 +11,7 @@ const DEFAULTS = {
   badge: true,          // on-page status pill
 };
 const MIN = 1, MAX = 5000;
+const MODIFIERS = ['Shift', 'Control', 'Alt', 'Meta'];
 const PRESETS = [
   ['Too damn slow', 2],
   ['Slow', 12],

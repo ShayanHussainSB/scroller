@@ -7,7 +7,7 @@ const clamp = (n) => Math.round(Math.min(MAX, Math.max(MIN, n)));
 const toSlider = (pxs) => Math.round((1000 * Math.log(pxs / MIN)) / Math.log(MAX / MIN));
 const fromSlider = (v) => clamp(MIN * Math.pow(MAX / MIN, v / 1000));
 
-const keyLabel = (k) => ({ ' ': 'Space', ArrowUp: '↑', ArrowDown: '↓', ArrowLeft: '←', ArrowRight: '→' })[k]
+const keyLabel = (k) => ({ ' ': 'Space', Control: 'Ctrl', Meta: 'Cmd', ArrowUp: '↑', ArrowDown: '↓', ArrowLeft: '←', ArrowRight: '→' })[k]
   || (k.length === 1 ? k.toUpperCase() : k);
 
 // Presets
@@ -74,13 +74,14 @@ for (const b of document.querySelectorAll('.key')) {
   });
 }
 document.addEventListener('keydown', (e) => {
-  if (!listening || ['Shift', 'Control', 'Alt', 'Meta', 'Tab'].includes(e.key)) return;
+  if (!listening || e.key === 'Tab') return;
+  if (MODIFIERS.includes(e.key) && listening.dataset.k !== 'holdKey') return; // only the hold key can be a modifier
   e.preventDefault();
   const b = listening, k = b.dataset.k;
   listening = null;
   b.classList.remove('listening');
   if (e.key !== 'Escape') {
-    const clash = ['key', 'fasterKey', 'slowerKey'].find((o) => o !== k && s[o].toLowerCase() === e.key.toLowerCase());
+    const clash = ['key', 'holdKey', 'fasterKey', 'slowerKey'].find((o) => o !== k && s[o].toLowerCase() === e.key.toLowerCase());
     if (clash) hint.textContent = `“${keyLabel(e.key)}” is already used. Pick another.`;
     else { save({ [k]: e.key }); hint.textContent = 'Saved.'; }
   }

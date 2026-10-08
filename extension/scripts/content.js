@@ -1,6 +1,6 @@
 let s = { ...DEFAULTS };
 // on = what the user asked for; level eases 0..1 so starts, stops and pauses glide instead of jerk.
-let on = false, looping = false, level = 0;
+let on = false, looping = false, level = 0, held = false;
 let last = 0, carry = 0, sinceJump = 0, stuckFor = 0, pausedUntil = 0, target = null;
 const RAMP = 500; // ms to ease fully in or out
 
@@ -29,7 +29,7 @@ function tick(now) {
   last = now;
   if (!target.isConnected) target = findTarget();
 
-  const goal = on && now >= pausedUntil ? 1 : 0;
+  const goal = on && !held && now >= pausedUntil ? 1 : 0;
   level = goal > level ? Math.min(1, level + dt / RAMP) : Math.max(0, level - dt / RAMP);
   if (!on && !level) return (looping = false);
 
@@ -73,7 +73,7 @@ function start() {
   }
   badge();
 }
-function stop() { on = false; badge(); }
+function stop() { on = false; held = false; badge(); }
 const toggle = () => (on ? stop() : start());
 
 function nudge(f) {
@@ -99,7 +99,7 @@ function badge() {
   }
   if (!host.isConnected) document.documentElement.append(host);
   pill.className = on ? 'on' : '';
-  pill.textContent = on ? `${s.pxs} px/s${s.dir < 0 ? ' · up' : ''}` : 'Stopped';
+  pill.textContent = !on ? 'Stopped' : held ? 'Paused' : `${s.pxs} px/s${s.dir < 0 ? ' · up' : ''}`;
   pill.style.opacity = 1;
   clearTimeout(hideTimer);
   if (!on) hideTimer = setTimeout(() => (pill.style.opacity = 0), 1200);
@@ -110,6 +110,12 @@ const same = (a, b) => a.length === 1 ? a.toLowerCase() === b.toLowerCase() : a 
 addEventListener('keydown', (e) => {
   const t = e.target;
   if (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)) return;
+  if (same(e.key, s.holdKey)) {
+    if (on && !held) { held = true; badge(); }
+    // modifiers pass through so Shift+click etc. keep working; other keys would scroll the page
+    if (on && !MODIFIERS.includes(e.key)) e.preventDefault();
+    return;
+  }
   if (e.ctrlKey || e.metaKey || e.altKey) return;
   if (same(e.key, s.key)) toggle();
   else if (on && same(e.key, s.fasterKey)) nudge(1.25);
@@ -118,6 +124,10 @@ addEventListener('keydown', (e) => {
   e.preventDefault();
   e.stopPropagation();
 }, true);
+
+const release = () => { if (held) { held = false; badge(); } };
+addEventListener('keyup', (e) => same(e.key, s.holdKey) && release(), true);
+addEventListener('blur', release); // key let go while the window was in the background
 
 // Your own scrolling wins instantly; we ease back in two seconds after you stop.
 const manual = () => { if (on && s.pauseOnManual) { pausedUntil = performance.now() + 2000; level = 0; } };

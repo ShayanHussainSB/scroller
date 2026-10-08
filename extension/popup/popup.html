@@ -129,7 +129,7 @@
   .switch input:checked + i::after { transform: translateX(16px); }
   .switch input:focus-visible + i { outline: 2px solid var(--red); outline-offset: 2px; }
 
-  .keys { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .keys { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px 8px; }
   .keys label { display: flex; flex-direction: column; gap: 6px; color: var(--ink-2); font-size: 12px; font-weight: 600; }
   .key {
     width: 100%; height: 32px; padding: 0 10px;
@@ -214,6 +214,7 @@
   <h2 id="h-keys">Keys</h2>
   <div class="keys">
     <label>Start / stop<button class="key" data-k="key" type="button"></button></label>
+    <label>Hold to pause<button class="key" data-k="holdKey" type="button"></button></label>
     <label>Faster<button class="key" data-k="fasterKey" type="button"></button></label>
     <label>Slower<button class="key" data-k="slowerKey" type="button"></button></label>
   </div>

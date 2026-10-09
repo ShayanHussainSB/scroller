@@ -9,180 +9,350 @@
     font-weight: 400 800;
   }
 
-  /* Ink-dark paper, made for reading at night. */
+  /* Pure black, built for reading at night. Red is reserved for "scrolling right now". */
   :root {
-    --paper: #17140f;
-    --paper-2: #221e18;
-    --ink: #f2ede3;
-    --ink-2: #a89f91;
-    --line: #342e26;
-    --red: #e5484d;
-    --red-ink: #fff;
-    --tone: #f2ede318;
+    --bg: #000;
+    --s1: #0e0e0e;
+    --s2: #171717;
+    --line: #262626;
+    --line-2: #383838;
+    --ink: #f5f5f5;
+    --ink-2: #a3a3a3;
+    --red: #ff4f5a;
+    --ease: cubic-bezier(.2, .8, .2, 1);
     color-scheme: dark;
   }
 
   * { box-sizing: border-box; }
-  ::selection { background: var(--red); color: var(--red-ink); }
+  ::selection { background: var(--ink); color: var(--bg); }
+  html { scrollbar-width: thin; scrollbar-color: var(--line-2) transparent; }
   body {
-    width: 304px; margin: 0;
+    width: 320px; margin: 0;
     font: 13px/1.4 'Bricolage', system-ui, sans-serif;
     font-variant-numeric: tabular-nums;
-    background: var(--paper); color: var(--ink);
-    accent-color: var(--red);
+    background: var(--bg); color: var(--ink);
   }
-  html { scrollbar-width: thin; scrollbar-color: var(--line) transparent; }
-  :focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
+  :focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+  button { font: inherit; color: inherit; }
+  kbd {
+    display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 5px;
+    font: 700 12px/1 'Bricolage', system-ui, sans-serif;
+    border: 1px solid var(--line-2); border-bottom-width: 2px; border-radius: 5px;
+    background: var(--s2); color: var(--ink);
+  }
 
-  header {
+  /* ── Header ─────────────────────────────────────────── */
+  .top {
+    position: relative; overflow: hidden;
     display: flex; align-items: center; justify-content: space-between;
-    position: relative;
     padding: 16px 16px 14px;
-    border-bottom: 1px solid var(--line);
   }
-  /* screentone fading in from the right, the one manga nod */
-  header::before {
+  /* screentone, fading in from the right */
+  .top::before {
     content: ""; position: absolute; inset: 0; pointer-events: none;
-    background: radial-gradient(var(--tone) 1px, transparent 1.4px) 0 0 / 5px 5px;
-    -webkit-mask: linear-gradient(90deg, transparent 25%, #000);
+    background: radial-gradient(#ffffff1f 1px, transparent 1.4px) 0 0 / 5px 5px;
+    -webkit-mask: linear-gradient(90deg, transparent 30%, #000);
   }
-  header > * { position: relative; }
-  h1 { margin: 0; font-size: 20px; font-weight: 800; letter-spacing: -0.02em; }
-  h1 span { color: var(--red); }
+  /* manga speed lines, only while scrolling */
+  .top::after {
+    content: ""; position: absolute; inset: 0; pointer-events: none; opacity: 0;
+    background: repeating-linear-gradient(180deg, transparent 0 22px, #ff4f5a59 22px 40px) 0 0 / 100% 40px;
+    -webkit-mask: repeating-linear-gradient(90deg, #000 0 1px, transparent 1px 13px),
+                  linear-gradient(90deg, transparent 20%, #000 70%);
+    -webkit-mask-composite: source-in;
+    transition: opacity .4s var(--ease);
+  }
+  body.running .top::after { opacity: 1; animation: lines .5s linear infinite; }
+  @keyframes lines { to { background-position: 0 -40px; } }
+  .top > * { position: relative; z-index: 1; }
+
+  h1 { margin: 0; font-size: 22px; font-weight: 800; letter-spacing: -0.03em; }
+  h1 span { color: var(--ink-2); transition: color .3s var(--ease); }
+  body.running h1 span { color: var(--red); }
 
   #run {
-    min-width: 84px; height: 36px; padding: 0 16px;
-    font: 700 13px 'Bricolage', system-ui, sans-serif;
-    border: 1.5px solid var(--ink); border-radius: 999px;
-    background: var(--paper); color: var(--ink); cursor: pointer;
-    transition: background .15s ease-out, color .15s ease-out, border-color .15s ease-out;
+    display: inline-flex; align-items: center; gap: 8px;
+    height: 38px; padding: 0 8px 0 16px;
+    font-weight: 700; border: 1.5px solid var(--ink); border-radius: 999px;
+    background: var(--ink); color: var(--bg); cursor: pointer;
+    transition: background .2s var(--ease), color .2s var(--ease), border-color .2s var(--ease), transform .1s var(--ease);
   }
-  #run:hover { background: var(--paper-2); }
-  #run.on { background: var(--red); border-color: var(--red); color: var(--red-ink); }
-  #run:disabled { opacity: .45; cursor: default; }
-
-  section { padding: 14px 16px; border-bottom: 1px solid var(--line); }
-  section:last-of-type { border-bottom: 0; }
-  h2 { margin: 0 0 10px; font-size: 13px; font-weight: 700; }
-  #site {
-    display: inline-block; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-    vertical-align: bottom; margin-left: 4px; color: var(--ink-2); font-weight: 500;
+  #run kbd { background: #0000000f; border-color: #0003; color: inherit; }
+  #run:hover { background: #fff; }
+  #run:active { transform: scale(.97); }
+  #run.on { background: var(--red); border-color: var(--red); color: #000; }
+  #run.on::before {
+    content: ""; width: 7px; height: 7px; margin-left: -4px; border-radius: 50%; background: #000;
+    animation: pulse 1.2s ease-in-out infinite;
   }
+  @keyframes pulse { 50% { opacity: .25; } }
+  #run:disabled { background: transparent; border-color: var(--line-2); color: var(--ink-2); cursor: not-allowed; }
+  #run:disabled kbd { border-color: var(--line-2); }
 
-  /* Speed */
-  .readout { display: flex; align-items: baseline; gap: 6px; margin-bottom: 4px; }
+  /* ── Status ─────────────────────────────────────────── */
+  .status[hidden] { display: none; }
+  .status {
+    display: flex; align-items: center; gap: 8px; min-height: 34px;
+    margin: 0 16px; padding: 0 2px; color: var(--ink-2);
+  }
+  #status-text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  body.running #status-text { color: var(--ink); }
+  .chip {
+    display: inline-flex; align-items: center; gap: 6px; max-width: 170px; height: 28px; padding: 0 10px 0 8px;
+    border: 1px solid var(--line-2); border-radius: 999px; background: none; cursor: pointer;
+    color: var(--ink); font-size: 12px; font-weight: 600;
+    transition: border-color .15s var(--ease), background .15s var(--ease);
+  }
+  .chip[hidden] { display: none; }
+  .chip:hover { border-color: var(--ink-2); background: var(--s1); }
+  .chip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .star { flex: none; color: var(--ink-2); transition: color .15s var(--ease), transform .2s var(--ease); }
+  .star path { fill: none; stroke: currentColor; stroke-width: 1.4; stroke-linejoin: round; }
+  [aria-pressed=true] .star { color: var(--ink); }
+  [aria-pressed=true] .star path { fill: currentColor; }
+  button:active .star { transform: scale(.8) rotate(-15deg); }
+
+  .offline {
+    margin: 4px 16px 6px; padding: 12px 12px 12px 14px; border: 1px solid var(--line-2); border-radius: 12px;
+    background: var(--s1); display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; align-items: center;
+  }
+  .offline[hidden] { display: none; }
+  .offline strong { grid-column: 1; font-size: 14px; }
+  .offline p { grid-column: 1; margin: 0; color: var(--ink-2); font-size: 12px; }
+  .offline button {
+    grid-column: 2; grid-row: 1 / span 2; height: 34px; padding: 0 14px; border-radius: 999px;
+    border: 0; background: var(--ink); color: var(--bg); font-weight: 700; cursor: pointer;
+  }
+  .offline button:active { transform: scale(.97); }
+
+  /* ── Tabs ───────────────────────────────────────────── */
+  [role=tablist] {
+    position: relative; display: grid; grid-template-columns: repeat(4, 1fr);
+    margin: 4px 0 0; padding: 0 8px; border-bottom: 1px solid var(--line);
+  }
+  [role=tab] {
+    height: 40px; padding: 0; border: 0; background: none; cursor: pointer;
+    color: var(--ink-2); font-weight: 600; transition: color .15s var(--ease);
+  }
+  [role=tab]:hover { color: var(--ink); }
+  [role=tab][aria-selected=true] { color: var(--ink); }
+  [role=tab]:focus-visible { outline-offset: -4px; border-radius: 8px; }
+  [role=tab] small { margin-left: 3px; color: var(--ink-2); font-weight: 500; font-size: 12px; }
+  .bar {
+    position: absolute; bottom: -1px; left: 0; height: 2px; width: var(--w, 0); border-radius: 2px;
+    background: var(--ink); transform: translateX(var(--x, 0));
+    transition: transform .3s var(--ease); /* tabs are equal width, so only the position moves */
+  }
+  [role=tabpanel] { padding: 14px 16px 6px; }
+  [role=tabpanel]:not([hidden]) { animation: in .25s var(--ease); }
+  @keyframes in { from { opacity: 0; transform: translateY(4px); } }
+
+  /* ── Read: speed ────────────────────────────────────── */
+  .readout { display: flex; align-items: baseline; gap: 6px; }
   #pxs {
-    field-sizing: content; min-width: 1ch; max-width: 5ch; padding: 0; border: 0; background: none; color: var(--ink);
-    font: 800 34px/1 'Bricolage', system-ui, sans-serif; letter-spacing: -0.03em;
+    field-sizing: content; min-width: 1ch; max-width: 5ch; padding: 0;
+    border: 0; border-radius: 4px; background: none; color: var(--ink);
+    font: 800 44px/1 'Bricolage', system-ui, sans-serif; letter-spacing: -0.04em;
     font-variant-numeric: tabular-nums; -moz-appearance: textfield;
   }
   #pxs::-webkit-inner-spin-button { -webkit-appearance: none; }
   .unit { color: var(--ink-2); font-weight: 600; }
-  #name { margin-left: auto; color: var(--red); font-weight: 700; }
+  .readout .side { margin-left: auto; text-align: right; }
+  #name { display: block; font-weight: 700; font-size: 14px; }
+  #pace { display: block; color: var(--ink-2); font-size: 12px; }
+  #quip { margin: 4px 0 0; color: var(--ink-2); font-size: 12px; font-style: italic; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
   input[type=range] {
-    -webkit-appearance: none; width: 100%; height: 28px; margin: 4px 0 10px; background: none; cursor: pointer;
+    -webkit-appearance: none; display: block; width: 100%; height: 32px; margin: 4px 0 8px; background: none; cursor: pointer;
   }
   input[type=range]::-webkit-slider-runnable-track {
     height: 4px; border-radius: 2px;
-    background: linear-gradient(var(--red), var(--red)) 0 / var(--fill, 50%) 100% no-repeat, var(--line);
+    background: linear-gradient(var(--ink), var(--ink)) 0 / var(--fill, 50%) 100% no-repeat, var(--line);
   }
   input[type=range]::-webkit-slider-thumb {
-    -webkit-appearance: none; width: 18px; height: 18px; margin-top: -7px; border-radius: 50%;
-    background: var(--ink); border: 3px solid var(--paper); box-shadow: 0 1px 4px #0005;
+    -webkit-appearance: none; width: 20px; height: 20px; margin-top: -8px; border-radius: 50%;
+    background: var(--ink); box-shadow: 0 0 0 4px var(--bg), 0 2px 8px #000;
+    transition: transform .15s var(--ease);
   }
+  input[type=range]:active::-webkit-slider-thumb { transform: scale(1.15); }
+  input[type=range]:focus-visible { outline: none; }
+  input[type=range]:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 4px var(--bg), 0 0 0 6px var(--ink); }
 
   .presets { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
   .presets button {
-    min-height: 36px; padding: 4px 6px; border: 1px solid var(--line); border-radius: 8px;
-    background: var(--paper); color: var(--ink); cursor: pointer;
-    font: 600 12px/1.15 'Bricolage', system-ui, sans-serif;
-    transition: background .15s ease-out, border-color .15s ease-out;
+    min-height: 46px; padding: 6px 2px; border: 1px solid var(--line); border-radius: 10px; letter-spacing: -0.01em;
+    background: var(--s1); cursor: pointer; font-weight: 600; font-size: 12px; line-height: 1.2;
+    transition: border-color .15s var(--ease), background .15s var(--ease), transform .1s var(--ease);
   }
-  .presets button small { display: block; color: var(--ink-2); font-weight: 500; font-size: 12px; }
-  .presets button:hover { background: var(--paper-2); }
-  .presets button[aria-pressed=true] { border-color: var(--red); background: var(--paper-2); }
+  .presets button small { display: block; margin-top: 2px; color: var(--ink-2); font-weight: 500; font-size: 12px; }
+  .presets button:hover { background: var(--s2); border-color: var(--line-2); }
+  .presets button:active { transform: scale(.96); }
+  .presets button[aria-pressed=true] { border-color: var(--ink); background: var(--s2); }
 
-  /* Rows of settings */
-  .row { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 36px; }
-  .row + .row { margin-top: 6px; }
-  .row > span { color: var(--ink); }
-  .row.stack { flex-direction: column; align-items: stretch; gap: 8px; padding-bottom: 4px; }
-  .row.stack .seg { display: flex; }
-  .row.stack .seg label { flex: 1 1 auto; text-align: center; white-space: nowrap; }
+  /* ── Shared controls ────────────────────────────────── */
+  .group { margin-top: 14px; }
+  .label { display: block; margin-bottom: 8px; font-weight: 700; }
+  .desc { margin: 6px 0 0; color: var(--ink-2); font-size: 12px; min-height: 17px; }
+  .row { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 54px; padding: 8px 0; }
+  .row + .row { border-top: 1px solid var(--line); }
+  .row .text { min-width: 0; }
+  .row .text b { display: block; font-weight: 600; }
+  .row .text span { display: block; color: var(--ink-2); font-size: 12px; }
+  .row[hidden] { display: none; }
+  .row.stack { flex-direction: column; align-items: stretch; gap: 8px; }
 
-  .seg { display: inline-flex; padding: 3px; gap: 2px; border-radius: 9px; background: var(--paper-2); }
+  .seg { display: inline-flex; padding: 3px; gap: 2px; border-radius: 10px; background: var(--s2); }
+  .seg.full { display: flex; }
+  .seg.full label { flex: 1 1 auto; text-align: center; white-space: nowrap; }
   .seg label { position: relative; }
   .seg input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
   .seg span {
-    display: block; padding: 6px 10px; border-radius: 7px; font-weight: 600; color: var(--ink-2);
-    transition: background .15s ease-out, color .15s ease-out;
+    display: block; padding: 7px 11px; border-radius: 8px; font-weight: 600; color: var(--ink-2);
+    transition: background .15s var(--ease), color .15s var(--ease);
   }
-  .seg input:checked + span { background: var(--paper); color: var(--ink); box-shadow: 0 1px 3px #0002; }
-  .seg input:focus-visible + span { outline: 2px solid var(--red); outline-offset: 1px; }
-  .seg:has(input:disabled) { opacity: .45; }
+  .seg label:hover span { color: var(--ink); }
+  .seg input:checked + span { background: var(--line-2); color: var(--ink); box-shadow: 0 1px 3px #000; }
+  .seg input:focus-visible + span { outline: 2px solid var(--ink); outline-offset: 1px; }
 
-  .switch { position: relative; width: 38px; height: 22px; flex: none; }
+  .switch { position: relative; width: 40px; height: 24px; flex: none; }
   .switch input { position: absolute; inset: 0; margin: 0; opacity: 0; cursor: pointer; z-index: 1; }
-  .switch i {
-    position: absolute; inset: 0; border-radius: 999px; background: var(--line);
-    transition: background .2s ease-out;
-  }
+  .switch i { position: absolute; inset: 0; border-radius: 999px; background: var(--line-2); transition: background .2s var(--ease); }
   .switch i::after {
-    content: ""; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%;
-    background: #fff; box-shadow: 0 1px 2px #0004; transition: transform .2s cubic-bezier(.2,.8,.2,1);
+    content: ""; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%;
+    background: var(--ink-2); transition: transform .25s var(--ease), background .2s var(--ease);
   }
-  .switch input:checked + i { background: var(--red); }
-  .switch input:checked + i::after { transform: translateX(16px); }
-  .switch input:focus-visible + i { outline: 2px solid var(--red); outline-offset: 2px; }
+  .switch input:checked + i { background: var(--ink); }
+  .switch input:checked + i::after { transform: translateX(16px); background: var(--bg); }
+  .switch input:focus-visible + i { outline: 2px solid var(--ink); outline-offset: 2px; }
+  label.row { cursor: pointer; }
 
-  .keys { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px 8px; }
-  .keys label { display: flex; flex-direction: column; gap: 6px; color: var(--ink-2); font-size: 12px; font-weight: 600; }
+  .cheat {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; margin-top: 12px; padding-top: 12px;
+    border-top: 1px solid var(--line); color: var(--ink-2); font-size: 12px;
+  }
+  .cheat span { display: inline-flex; align-items: center; gap: 4px; }
+
+  /* ── Keys ───────────────────────────────────────────── */
   .key {
-    width: 100%; height: 32px; padding: 0 10px;
-    font: 700 13px 'Bricolage', system-ui, sans-serif;
-    border: 1px solid var(--line); border-bottom-width: 3px; border-radius: 7px;
-    background: var(--paper); color: var(--ink); cursor: pointer;
+    min-width: 76px; height: 36px; padding: 0 12px; font-weight: 700;
+    border: 1px solid var(--line-2); border-bottom-width: 3px; border-radius: 8px;
+    background: var(--s1); cursor: pointer;
+    transition: background .15s var(--ease), border-color .15s var(--ease), transform .1s var(--ease);
   }
-  .key:hover { background: var(--paper-2); }
-  .key.listening { border-color: var(--red); color: var(--red); }
+  .key:hover { background: var(--s2); }
+  .key:active { transform: translateY(1px); border-bottom-width: 2px; }
+  .key.listening { border-color: var(--ink); animation: pulse 1s ease-in-out infinite; }
+  .ghost {
+    margin-top: 10px; height: 34px; padding: 0 12px; border: 1px solid var(--line-2); border-radius: 999px;
+    background: none; color: var(--ink-2); font-weight: 600; cursor: pointer;
+  }
+  .ghost:hover { color: var(--ink); border-color: var(--ink-2); }
 
-  footer { padding: 10px 16px 14px; color: var(--ink-2); font-size: 12px; }
+  /* ── Sites ──────────────────────────────────────────── */
+  .intro { margin: 0 0 10px; color: var(--ink-2); font-size: 12px; }
+  .list-title { display: flex; justify-content: space-between; margin: 4px 0 2px; font-weight: 700; }
+  .list-title + .list-title, .list + .list-title, .nofav + .list-title { margin-top: 14px; }
+  .list-title[hidden], .list[hidden], .nofav[hidden] { display: none; }
+  .nofav { margin: 2px 0 0; color: var(--ink-2); font-size: 12px; }
+  .list { margin: 0; padding: 0; list-style: none; max-height: 176px; overflow-y: auto; }
+  .list li {
+    display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; align-items: center; gap: 6px;
+    min-height: 44px; border-top: 1px solid var(--line);
+  }
+  .list li:first-child { border-top: 0; }
+  .list .host { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; color: var(--ink); text-decoration: none; }
+  .list a.host:hover { text-decoration: underline; text-underline-offset: 3px; }
+  .list li.here .host::after {
+    content: "here"; margin-left: 8px; padding: 2px 7px; border-radius: 999px;
+    background: var(--s2); color: var(--ink-2); font-size: 12px; font-weight: 500;
+  }
+  .list .v { color: var(--ink-2); font-weight: 600; margin-right: 2px; }
+  .list button {
+    display: grid; place-items: center; width: 34px; height: 34px; padding: 0;
+    border: 0; border-radius: 8px; background: none; color: var(--ink-2); cursor: pointer;
+  }
+  .list button:hover { background: var(--s2); color: var(--ink); }
+  .empty { padding: 22px 8px 18px; text-align: center; color: var(--ink-2); }
+  .empty b { display: block; margin-bottom: 4px; color: var(--ink); font-size: 14px; }
+  .empty[hidden] { display: none; }
 
-  /* no animating into the saved state when the popup opens */
-  body:not(.ready) * { transition: none !important; }
+  /* ── Footer ─────────────────────────────────────────── */
+  footer {
+    display: flex; align-items: center; gap: 10px; min-height: 40px;
+    margin-top: 8px; padding: 8px 16px 12px; border-top: 1px solid var(--line);
+    color: var(--ink-2); font-size: 12px;
+  }
+  #hint { flex: 1; }
+  #undo {
+    height: 28px; padding: 0 12px; border: 1px solid var(--ink-2); border-radius: 999px;
+    background: none; color: var(--ink); font-size: 12px; font-weight: 700; cursor: pointer;
+  }
+  #undo[hidden] { display: none; }
+
+  /* nothing animates into the saved state when the popup opens */
+  body:not(.ready) *, body:not(.ready) *::before, body:not(.ready) *::after { transition: none !important; }
   @media (prefers-reduced-motion: reduce) {
-    * { transition-duration: 0s !important; }
+    *, *::before, *::after { transition-duration: 0s !important; animation: none !important; }
   }
 </style>
 
-<header>
+<header class="top">
   <h1>Scroller<span>.</span></h1>
-  <button id="run" type="button">Start</button>
+  <button id="run" type="button"><span id="run-label">Start</span><kbd id="run-key" aria-hidden="true">S</kbd></button>
 </header>
 
-<section aria-labelledby="h-speed">
-  <h2 id="h-speed">Speed<span id="site"></span></h2>
+<div class="status" role="status" aria-live="polite">
+  <span id="status-text">Ready when you are.</span>
+  <button id="site" class="chip" type="button" aria-pressed="false" hidden></button>
+</div>
+
+<div id="offline" class="offline" hidden>
+  <strong>Can't reach this page.</strong>
+  <p>Reload it, or try a regular website.</p>
+  <button id="reload" type="button">Reload tab</button>
+</div>
+
+<nav role="tablist" aria-label="Scroller settings">
+  <button role="tab" id="t-read" aria-controls="p-read" aria-selected="true" type="button">Read</button>
+  <button role="tab" id="t-feel" aria-controls="p-feel" aria-selected="false" tabindex="-1" type="button">Feel</button>
+  <button role="tab" id="t-keys" aria-controls="p-keys" aria-selected="false" tabindex="-1" type="button">Keys</button>
+  <button role="tab" id="t-sites" aria-controls="p-sites" aria-selected="false" tabindex="-1" type="button">Sites<small id="site-count"></small></button>
+  <span class="bar" aria-hidden="true"></span>
+</nav>
+
+<section role="tabpanel" id="p-read" aria-labelledby="t-read">
   <div class="readout">
     <input id="pxs" type="number" min="1" max="5000" aria-label="Speed in pixels per second">
     <span class="unit">px/s</span>
-    <span id="name" aria-live="polite"></span>
+    <span class="side"><span id="name"></span><span id="pace"></span></span>
   </div>
+  <p id="quip"></p>
   <input id="slider" type="range" min="0" max="1000" aria-label="Speed, slow to fast">
   <div class="presets" id="presets"></div>
+
+  <div class="group">
+    <span class="label" id="l-end">At the end</span>
+    <div class="seg full" role="radiogroup" aria-labelledby="l-end" aria-describedby="end-desc">
+      <label><input type="radio" name="atEnd" value="stop"><span>Stop</span></label>
+      <label><input type="radio" name="atEnd" value="wait"><span>Wait</span></label>
+      <label><input type="radio" name="atEnd" value="next"><span>Next chapter</span></label>
+    </div>
+    <p class="desc" id="end-desc"></p>
+  </div>
+
+  <div class="cheat" id="cheat" aria-label="Keyboard shortcuts"></div>
 </section>
 
-<section aria-labelledby="h-motion">
-  <h2 id="h-motion">Motion</h2>
+<section role="tabpanel" id="p-feel" aria-labelledby="t-feel" hidden>
   <div class="row">
-    <span id="l-mode">Style</span>
+    <div class="text"><b id="l-mode">Style</b><span id="mode-desc"></span></div>
     <div class="seg" role="radiogroup" aria-labelledby="l-mode">
       <label><input type="radio" name="mode" value="smooth"><span>Glide</span></label>
-      <label><input type="radio" name="mode" value="step"><span>Page jumps</span></label>
+      <label><input type="radio" name="mode" value="step"><span>Jumps</span></label>
     </div>
   </div>
-  <div class="row">
-    <span id="l-step">Jump size</span>
+  <div class="row" id="step-row">
+    <div class="text"><b id="l-step">Jump size</b><span>Screen per jump</span></div>
     <div class="seg" role="radiogroup" aria-labelledby="l-step">
       <label><input type="radio" name="step" value="0.5"><span>½</span></label>
       <label><input type="radio" name="step" value="0.75"><span>¾</span></label>
@@ -190,45 +360,68 @@
     </div>
   </div>
   <div class="row">
-    <span id="l-dir">Direction</span>
+    <div class="text"><b id="l-dir">Direction</b><span>Which way the page goes</span></div>
     <div class="seg" role="radiogroup" aria-labelledby="l-dir">
       <label><input type="radio" name="dir" value="1"><span>Down</span></label>
       <label><input type="radio" name="dir" value="-1"><span>Up</span></label>
     </div>
   </div>
-</section>
-
-<section aria-labelledby="h-behave">
-  <h2 id="h-behave">Behavior</h2>
-  <div class="row stack">
-    <span id="l-end">At the end</span>
-    <div class="seg" role="radiogroup" aria-labelledby="l-end">
-      <label title="Stop scrolling"><input type="radio" name="atEnd" value="stop"><span>Stop</span></label>
-      <label title="Keep going if more pages load in"><input type="radio" name="atEnd" value="wait"><span>Wait</span></label>
-      <label title="Open the next chapter and keep reading"><input type="radio" name="atEnd" value="next"><span>Next chapter</span></label>
-    </div>
-  </div>
   <label class="row">
-    <span>Pause when I scroll</span>
+    <span class="text"><b>Pause when I scroll</b><span>Resumes 2s after you stop</span></span>
     <span class="switch"><input type="checkbox" role="switch" id="pauseOnManual"><i></i></span>
   </label>
   <label class="row">
-    <span>Show status on page</span>
+    <span class="text"><b>Status on page</b><span>Speed pill in the corner</span></span>
     <span class="switch"><input type="checkbox" role="switch" id="badge"><i></i></span>
   </label>
 </section>
 
-<section aria-labelledby="h-keys">
-  <h2 id="h-keys">Keys</h2>
-  <div class="keys">
-    <label>Start / stop<button class="key" data-k="key" type="button"></button></label>
-    <label>Hold to pause<button class="key" data-k="holdKey" type="button"></button></label>
-    <label>Faster<button class="key" data-k="fasterKey" type="button"></button></label>
-    <label>Slower<button class="key" data-k="slowerKey" type="button"></button></label>
+<section role="tabpanel" id="p-keys" aria-labelledby="t-keys" hidden>
+  <div class="row">
+    <div class="text"><b>Start / stop</b><span>On any page you're reading</span></div>
+    <button class="key" data-k="key" type="button"></button>
+  </div>
+  <div class="row">
+    <div class="text"><b>Hold to pause</b><span>Linger on a panel</span></div>
+    <button class="key" data-k="holdKey" type="button"></button>
+  </div>
+  <div class="row">
+    <div class="text"><b>Faster</b><span id="faster-desc"></span></div>
+    <button class="key" data-k="fasterKey" type="button"></button>
+  </div>
+  <div class="row">
+    <div class="text"><b>Slower</b><span id="slower-desc"></span></div>
+    <button class="key" data-k="slowerKey" type="button"></button>
+  </div>
+  <div class="row stack">
+    <div class="text"><b id="l-nudge">Step</b><span>Size of each faster or slower tap</span></div>
+    <div class="seg full" role="radiogroup" aria-labelledby="l-nudge">
+      <label><input type="radio" name="nudge" value="1.1"><span>10%</span></label>
+      <label><input type="radio" name="nudge" value="1.25"><span>25%</span></label>
+      <label><input type="radio" name="nudge" value="1.5"><span>50%</span></label>
+      <label><input type="radio" name="nudge" value="2"><span>2×</span></label>
+    </div>
+  </div>
+  <button class="ghost" id="reset-keys" type="button">Restore default keys</button>
+</section>
+
+<section role="tabpanel" id="p-sites" aria-labelledby="t-sites" hidden>
+  <p class="intro" id="sites-intro">Every site keeps its own speed. Sites you haven't tuned start at your last speed.</p>
+  <p class="list-title" id="fav-title">Favorites</p>
+  <ul class="list" id="fav-list"></ul>
+  <p class="nofav" id="fav-empty">None yet. Hit the star next to a site to pin it here, one click to open.</p>
+  <p class="list-title" id="other-title">Other sites</p>
+  <ul class="list" id="site-list"></ul>
+  <div class="empty" id="site-empty">
+    <b>No favorites yet.</b>
+    Change the speed on any site and it'll remember.
   </div>
 </section>
 
-<footer id="hint">Click a key, then press the one you want. Esc cancels.</footer>
+<footer>
+  <span id="hint" role="status" aria-live="polite"></span>
+  <button id="undo" type="button" hidden>Undo</button>
+</footer>
 
 <script src="../scripts/defaults.js"></script>
 <script src="popup.js"></script>

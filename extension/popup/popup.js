@@ -1,11 +1,6 @@
 const $ = (q) => document.querySelector(q);
-const pxsEl = $('#pxs'), slider = $('#slider'), nameEl = $('#name'), run = $('#run'), hint = $('#hint');
+const pxsEl = $('#pxs'), slider = $('#slider'), run = $('#run'), hint = $('#hint'), undoBtn = $('#undo');
 const save = (o) => chrome.storage.local.set(o);
-
-// Speed is remembered per site; the last speed used anywhere is the starting point for new sites.
-let host = null;
-const speedOf = () => (host && s.sites[host]) ?? s.pxs;
-const setSpeed = (pxs) => save(host ? { pxs, sites: { ...s.sites, [host]: pxs } } : { pxs });
 const clamp = (n) => Math.round(Math.min(MAX, Math.max(MIN, n)));
 
 // Slider is logarithmic so both ends get room: 1 px/s up to 5000 px/s.
@@ -15,7 +10,50 @@ const fromSlider = (v) => clamp(MIN * Math.pow(MAX / MIN, v / 1000));
 const keyLabel = (k) => ({ ' ': 'Space', Control: 'Ctrl', Meta: 'Cmd', ArrowUp: '↑', ArrowDown: '↓', ArrowLeft: '←', ArrowRight: '→' })[k]
   || (k.length === 1 ? k.toUpperCase() : k);
 
-// Presets
+// A line of personality for each preset, shown under the speed.
+const QUIPS = {
+  'Too damn slow': 'Savoring every screentone.',
+  'Slow': 'A slow burn. Very literary.',
+  'Reading': 'The sweet spot for most chapters.',
+  'Brisk': 'Training-arc pace.',
+  'Fast': 'Filler arc? Say no more.',
+  'Too damn fast': 'Speed lines activated.',
+};
+const END = {
+  stop: 'Stops at the last panel. The end… or is it?',
+  wait: 'Keeps rolling when more pages load in.',
+  next: 'Binge mode: opens the next chapter and keeps going.',
+};
+const MODE = { smooth: 'One smooth, steady glide', step: 'A chunk at a time' };
+const KEY_NAMES = { key: 'start/stop', holdKey: 'hold to pause', fasterKey: 'faster', slowerKey: 'slower' };
+
+// Speed is remembered per site; the last speed used anywhere is the starting point for new sites.
+let s = { ...DEFAULTS }, host = null, vh = 0, tabId, running = false;
+const speedOf = () => (host && s.sites[host]) ?? s.pxs;
+const setSpeed = (pxs) => save(host ? { pxs, sites: { ...s.sites, [host]: pxs } } : { pxs });
+
+// ── Footer messages ───────────────────────────────────────────
+let hintTimer;
+function say(text, { undo } = {}) {
+  hint.textContent = text;
+  undoBtn.hidden = !undo;
+  undoBtn.onclick = undo ? () => { undo(); say('Back where it was.'); } : null;
+  clearTimeout(hintTimer);
+  hintTimer = setTimeout(tip, undo ? 6000 : 3500);
+}
+function tip() {
+  const tips = [
+    `Hold ${keyLabel(s.holdKey)} to linger on a panel.`,
+    `${keyLabel(s.fasterKey)} and ${keyLabel(s.slowerKey)} nudge speed mid-chapter.`,
+    'Every site remembers its own speed.',
+    'Scroll yourself. Scroller backs off.',
+    'Next chapter: a series, one long scroll.',
+  ];
+  hint.textContent = 'Tip: ' + tips[Math.floor(Math.random() * tips.length)];
+  undoBtn.hidden = true;
+}
+
+// ── Presets ───────────────────────────────────────────────────
 for (const [name, pxs] of PRESETS) {
   const b = document.createElement('button');
   b.type = 'button';
@@ -30,35 +68,169 @@ function showSpeed(pxs) {
   if (document.activeElement !== slider) slider.value = toSlider(pxs);
   slider.style.setProperty('--fill', (toSlider(pxs) / 10) + '%');
   const near = PRESETS.reduce((a, b) => (Math.abs(Math.log(b[1] / pxs)) < Math.abs(Math.log(a[1] / pxs)) ? b : a));
-  nameEl.textContent = near[1] === pxs ? near[0] : (pxs < near[1] ? 'just under ' : 'just over ') + near[0].toLowerCase();
+  const name = near[1] === pxs ? near[0] : (pxs < near[1] ? 'Just under ' : 'Just over ') + near[0].toLowerCase();
+  $('#name').textContent = name;
+  $('#quip').textContent = QUIPS[near[0]];
+  slider.setAttribute('aria-valuetext', `${pxs} pixels per second, ${name}`);
   for (const b of $('#presets').children) b.setAttribute('aria-pressed', +b.dataset.pxs === pxs);
+  // a human unit: how long one screen takes
+  const t = vh / pxs;
+  $('#pace').textContent = !vh ? '' : t < 1 ? '1 screen in under a second' : t < 90 ? `1 screen every ${Math.round(t)}s` : `1 screen every ${Math.round(t / 60)} min`;
 }
 
-function render(s) {
+function render() {
   showSpeed(speedOf());
-  $('#site').textContent = host ? `for ${host}` : '';
-  for (const name of ['mode', 'step', 'dir', 'atEnd'])
+  for (const name of ['mode', 'step', 'dir', 'atEnd', 'nudge'])
     for (const r of document.getElementsByName(name)) r.checked = r.value === String(s[name]);
-  for (const r of document.getElementsByName('step')) r.disabled = s.mode !== 'step';
+  $('#step-row').hidden = s.mode !== 'step';
+  $('#mode-desc').textContent = MODE[s.mode];
+  $('#end-desc').textContent = END[s.atEnd];
+  $('#faster-desc').textContent = s.nudge === 2 ? 'Doubles it per tap' : `+${Math.round((s.nudge - 1) * 100)}% per tap`;
+  $('#slower-desc').textContent = s.nudge === 2 ? 'Halves it per tap' : `−${Math.round((1 - 1 / s.nudge) * 100)}% per tap`;
   $('#pauseOnManual').checked = s.pauseOnManual;
   $('#badge').checked = s.badge;
-  for (const b of document.querySelectorAll('.key')) if (!b.classList.contains('listening')) b.textContent = keyLabel(s[b.dataset.k]);
+  for (const b of document.querySelectorAll('.key')) {
+    if (b.classList.contains('listening')) continue;
+    b.textContent = keyLabel(s[b.dataset.k]);
+    b.setAttribute('aria-label', `${KEY_NAMES[b.dataset.k]} key: ${keyLabel(s[b.dataset.k])}. Press to change.`);
+  }
+  $('#run-key').textContent = keyLabel(s.key);
+  $('#cheat').innerHTML = '';
+  for (const [k, what] of [[s.key, 'start'], [s.holdKey, 'hold to pause'], [`${s.slowerKey} ${s.fasterKey}`, 'speed']]) {
+    const span = document.createElement('span');
+    for (const part of k === ' ' ? [k] : k.split(' ')) { const kb = document.createElement('kbd'); kb.textContent = keyLabel(part); span.append(kb); }
+    span.append(` ${what}`);
+    $('#cheat').append(span);
+  }
+  renderSites();
 }
 
-let s = { ...DEFAULTS };
+// ── Sites: favorites (starred by you) on top, then every site with a saved speed ──
+const X = '<svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M2 2l8 8M10 2l-8 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
+const STAR = '<svg class="star" width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M7 1.4l1.7 3.6 3.9.5-2.9 2.7.8 3.9L7 10.2l-3.5 1.9.8-3.9L1.4 5.5l3.9-.5z"/></svg>';
+const isFav = (h) => s.favs.includes(h);
+const byHere = (a, b) => (b === host) - (a === host) || a.localeCompare(b);
+
+function toggleFav(h) {
+  const was = isFav(h), old = s.favs;
+  save({ favs: was ? s.favs.filter((f) => f !== h) : [...s.favs, h] });
+  say(was ? `${h} is off your favorites.` : `${h} is a favorite now. Good taste.`, { undo: () => save({ favs: old }) });
+}
+function forget(h) {
+  const old = { sites: s.sites, favs: s.favs };
+  const { [h]: _, ...rest } = s.sites;
+  save({ sites: rest, favs: s.favs.filter((f) => f !== h) });
+  say(`Forgot ${h}.`, { undo: () => save(old) });
+}
+
+function row(h) {
+  const li = document.createElement('li');
+  li.classList.toggle('here', h === host);
+  const fav = isFav(h);
+  const star = document.createElement('button');
+  star.type = 'button';
+  star.innerHTML = STAR;
+  star.dataset.star = h;
+  star.setAttribute('aria-pressed', fav);
+  star.setAttribute('aria-label', `Favorite ${h}`);
+  star.title = fav ? 'Remove from favorites' : 'Add to favorites';
+  star.onclick = () => { toggleFav(h); requestAnimationFrame(() => document.querySelector(`[data-star="${CSS.escape(h)}"]`)?.focus()); };
+  // favorites open in a new tab; hostnames come from pages, so text only, never HTML
+  const name = document.createElement(fav && h.includes('.') ? 'a' : 'span');
+  name.className = 'host';
+  name.textContent = h;
+  name.title = fav ? `Open ${h}` : h;
+  if (name.tagName === 'A') { name.href = `https://${h}/`; name.target = '_blank'; name.rel = 'noopener'; }
+  const v = document.createElement('span');
+  v.className = 'v';
+  v.textContent = h in s.sites ? `${s.sites[h]} px/s` : 'default';
+  const x = document.createElement('button');
+  x.type = 'button';
+  x.innerHTML = X;
+  x.setAttribute('aria-label', `Forget ${h}`);
+  x.dataset.forget = h;
+  x.title = 'Forget this site';
+  x.onclick = () => {
+    const li = x.closest('li'), next = (li.nextElementSibling || li.previousElementSibling)?.querySelector('[data-forget]').dataset.forget;
+    forget(h);
+    // keep keyboard focus in the list after the row disappears
+    requestAnimationFrame(() => ((next && document.querySelector(`[data-forget="${CSS.escape(next)}"]`)) || $('#t-sites')).focus());
+  };
+  li.append(star, name, v, x);
+  return li;
+}
+
+function renderSites() {
+  const favs = s.favs.slice().sort(byHere);
+  const others = Object.keys(s.sites).filter((h) => !isFav(h)).sort(byHere);
+  const total = favs.length + others.length;
+  $('#site-count').textContent = total ? ` ${total}` : '';
+  $('#fav-list').replaceChildren(...favs.map(row));
+  $('#site-list').replaceChildren(...others.map(row));
+  // nothing at all: one friendly empty state. Otherwise: Favorites (or a hint), then Other sites.
+  $('#site-empty').hidden = !!total;
+  $('#sites-intro').hidden = !total;
+  $('#fav-title').hidden = !total;
+  $('#fav-list').hidden = !favs.length;
+  $('#fav-empty').hidden = !total || !!favs.length;
+  $('#other-title').hidden = $('#site-list').hidden = !others.length;
+  // the header chip stars the site you're on
+  const chip = $('#site');
+  chip.hidden = !host;
+  if (host) {
+    chip.innerHTML = STAR;
+    const t = document.createElement('span');
+    t.textContent = host;
+    chip.append(t);
+    chip.setAttribute('aria-pressed', isFav(host));
+    chip.setAttribute('aria-label', `Favorite ${host}`);
+    chip.title = isFav(host) ? 'Remove from favorites' : 'Add to favorites';
+  }
+}
+$('#site').addEventListener('click', () => host && toggleFav(host));
+
+// ── Tabs (WAI-ARIA tabs pattern, automatic activation) ────────
+const tabs = [...document.querySelectorAll('[role=tab]')];
+function select(tab, focus) {
+  for (const t of tabs) {
+    const on = t === tab;
+    t.setAttribute('aria-selected', on);
+    t.tabIndex = on ? 0 : -1;
+    document.getElementById(t.getAttribute('aria-controls')).hidden = !on;
+  }
+  const bar = $('.bar');
+  bar.style.setProperty('--x', tab.offsetLeft + tab.offsetWidth * 0.2 + 'px');
+  bar.style.setProperty('--w', tab.offsetWidth * 0.6 + 'px');
+  if (focus) tab.focus();
+}
+for (const t of tabs) t.addEventListener('click', () => select(t));
+$('[role=tablist]').addEventListener('keydown', (e) => {
+  const i = tabs.indexOf(document.activeElement);
+  const to = { ArrowRight: i + 1, ArrowLeft: i - 1, Home: 0, End: tabs.length - 1 }[e.key];
+  if (i < 0 || to === undefined) return;
+  e.preventDefault();
+  select(tabs[(to + tabs.length) % tabs.length], true);
+});
+
+// ── Storage ───────────────────────────────────────────────────
 chrome.storage.local.get(DEFAULTS, (v) => {
-  render((s = v));
+  s = v;
+  render();
+  select(tabs[0]);
+  tip();
   requestAnimationFrame(() => document.body.classList.add('ready'));
 });
 chrome.storage.onChanged.addListener((c) => {
   for (const k in c) if (k in DEFAULTS) s[k] = c[k].newValue;
-  render(s);
+  render();
 });
 
+// ── Inputs ────────────────────────────────────────────────────
 slider.addEventListener('input', () => setSpeed(fromSlider(+slider.value)));
 pxsEl.addEventListener('change', () => {
   const n = parseFloat(pxsEl.value);
   const pxs = Number.isFinite(n) ? clamp(n) : speedOf();
+  if (Number.isFinite(n) && pxs !== Math.round(n)) say(n > MAX ? `Easy there. ${MAX} px/s is the limit.` : `${MIN} px/s is as slow as it goes.`);
   setSpeed(pxs);
   pxsEl.value = pxs;
 });
@@ -70,14 +242,15 @@ document.addEventListener('change', (e) => {
   if (t.type === 'checkbox') save({ [t.id]: t.checked });
 });
 
-// Key capture: click a key button, press any key. Esc cancels.
+// ── Key capture: click a key, press any key. Esc cancels. ─────
 let listening = null;
 for (const b of document.querySelectorAll('.key')) {
   b.addEventListener('click', () => {
-    if (listening) listening.classList.remove('listening');
+    if (listening) { listening.classList.remove('listening'); render(); }
     listening = b;
     b.classList.add('listening');
     b.textContent = 'Press…';
+    say('Press any key. Your move. (Esc cancels)');
   });
 }
 document.addEventListener('keydown', (e) => {
@@ -87,26 +260,37 @@ document.addEventListener('keydown', (e) => {
   const b = listening, k = b.dataset.k;
   listening = null;
   b.classList.remove('listening');
-  if (e.key !== 'Escape') {
-    const clash = ['key', 'holdKey', 'fasterKey', 'slowerKey'].find((o) => o !== k && s[o].toLowerCase() === e.key.toLowerCase());
-    if (clash) hint.textContent = `“${keyLabel(e.key)}” is already used. Pick another.`;
-    else { save({ [k]: e.key }); hint.textContent = 'Saved.'; }
+  if (e.key === 'Escape') say('Never mind. Nothing changed.');
+  else {
+    const clash = Object.keys(KEY_NAMES).find((o) => o !== k && s[o].toLowerCase() === e.key.toLowerCase());
+    if (clash) say(`${keyLabel(e.key)} is already ${KEY_NAMES[clash]}. Pick another.`);
+    else { save({ [k]: e.key }); say(`Locked in: ${keyLabel(e.key)} is ${KEY_NAMES[k]}.`); }
   }
-  b.textContent = keyLabel(s[k]);
+  render();
+});
+$('#reset-keys').addEventListener('click', () => {
+  const keys = Object.fromEntries(Object.keys(KEY_NAMES).map((k) => [k, DEFAULTS[k]]));
+  const old = Object.fromEntries(Object.keys(KEY_NAMES).map((k) => [k, s[k]]));
+  save(keys);
+  say('Keys back to factory settings.', { undo: () => save(old) });
 });
 
-// Start/stop the current tab. Pages opened before install need a reload first.
-let tabId;
-const setRun = (r) => {
-  run.disabled = !r;
-  run.classList.toggle('on', !!r?.running);
-  run.textContent = r?.running ? 'Stop' : 'Start';
-  if (r?.host && r.host !== host) { host = r.host; render(s); }
-  if (!r) hint.textContent = 'Can’t run on this page. Reload it, or try a normal website.';
-};
-chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
-  tabId = tab?.id;
-  chrome.tabs.sendMessage(tabId, 'state', { frameId: 0 }, (r) => setRun(chrome.runtime.lastError ? null : r));
-});
-run.addEventListener('click', () =>
-  chrome.tabs.sendMessage(tabId, 'toggle', { frameId: 0 }, (r) => setRun(chrome.runtime.lastError ? null : r)));
+// ── Start/stop the current tab ────────────────────────────────
+function setRun(r) {
+  const ok = !!r;
+  running = !!r?.running;
+  run.disabled = !ok;
+  run.classList.toggle('on', running);
+  document.body.classList.toggle('running', running);
+  $('#run-label').textContent = running ? 'Stop' : 'Start';
+  $('#offline').hidden = ok;
+  $('.status').hidden = !ok;
+  $('#status-text').textContent = !ok ? 'Taking a break on this page.' : running ? 'Scrolling… don’t mind me.' : 'Ready when you are.';
+  if (r?.vh) vh = r.vh;
+  if (r?.host && r.host !== host) host = r.host;
+  render();
+}
+const ask = (msg) => chrome.tabs.sendMessage(tabId, msg, { frameId: 0 }, (r) => setRun(chrome.runtime.lastError ? null : r));
+chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => { tabId = tab?.id; ask('state'); });
+run.addEventListener('click', () => ask('toggle'));
+$('#reload').addEventListener('click', () => { chrome.tabs.reload(tabId); window.close(); });

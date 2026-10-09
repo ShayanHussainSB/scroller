@@ -10,17 +10,33 @@
 </p>
 
 <p align="center">
-  <img src="docs/popup.png" width="304" alt="Scroller popup: per-site speed with presets, motion, end-of-chapter behavior and key settings">
+  <img src="docs/read.png" width="320" alt="Scroller's Read tab: a big speed readout, slider, six presets from Too damn slow to Too damn fast, end-of-chapter options and a shortcut strip, on a pure black popup">
 </p>
+
+<table align="center">
+  <tr>
+    <td><img src="docs/feel.png" width="240" alt="Feel tab: glide or jumps, direction, pause when I scroll, status on page"></td>
+    <td><img src="docs/keys.png" width="240" alt="Keys tab: start/stop, hold to pause, faster and slower, each remappable"></td>
+    <td><img src="docs/sites.png" width="240" alt="Sites tab: every site with its saved speed and a button to forget it"></td>
+  </tr>
+  <tr>
+    <td align="center"><b>Feel</b></td>
+    <td align="center"><b>Keys</b></td>
+    <td align="center"><b>Sites</b></td>
+  </tr>
+</table>
 
 ## Features
 
+- **A popup that stays out of the way.** Pure black for night reading, four tabs (Read, Feel, Keys, Sites) that each fit without scrolling, and red reserved for one thing: scrolling right now.
+
 - **One key to start and stop.** Defaults to `S`; change it to any key you like.
 - **Any speed, 1 to 5000 px/s.** A logarithmic slider gives the slow end as much room as the fast end. Type an exact number, or pick a preset from *Too damn slow* to *Too damn fast*.
-- **Remembers speed per site.** Every reader sizes its pages differently, so each site keeps its own speed. New sites start from the last speed you used.
+- **Remembers speed per site.** Every reader sizes its pages differently, so each site keeps its own speed. New sites start from the last speed you used. The **Sites** tab lists every site's speed; forget any of them (with undo).
+- **Favorite sites.** Star the readers you love, from the site chip in the popup or the Sites tab. Favorites are pinned to the top and open in one click. Nothing is starred until you star it.
 - **Hold to pause.** Hold `Shift` to freeze on a dense panel; let go and it carries on.
 - **Next chapter, automatically.** At the end of a chapter Scroller can find the reader's *Next* button and keep going on the next one. A whole series, hands-free.
-- **Adjust while reading.** `]` speeds up 25%, `[` takes it back down a step.
+- **Adjust while reading.** `]` speeds up, `[` slows down. Pick how big each tap is on the Keys tab: 10%, 25%, 50% or 2×.
 - **Glide or page jumps.** Scroll continuously, or jump ½, ¾ or a full screen at a time.
 - **Up or down.**
 - **Gentle starts and stops.** Eases in and out instead of lurching.
@@ -52,10 +68,13 @@ Works in Chrome and other Chromium browsers (Edge, Brave, Arc, Opera, Vivaldi).
 | --- | --- | --- |
 | Start / stop | `S` | Or click **Start** in the popup |
 | Hold to pause | `Shift` | Resumes when you let go |
-| Faster | `]` | +25% per press, saved for this site |
-| Slower | `[` | −20% per press (undoes one faster press), saved for this site |
+| Faster | `]` | +25% per press by default (Keys → *Step*), saved for this site |
+| Slower | `[` | Undoes one faster press, saved for this site |
 | Set an exact speed | | Drag the slider, type a number, or click a preset |
 | Remap a key | | Click it in the popup, press the new key (`Esc` cancels) |
+| See or forget saved sites | | **Sites** tab; × forgets a site, **Undo** brings it back |
+| Reset keys | | **Keys** tab → *Restore default keys* |
+| Favorite a site | | Click the star on the site chip, or next to any site in the **Sites** tab |
 
 Keys are ignored while you're typing in a text box. Start, faster and slower never fire with `Ctrl`, `Cmd` or `Alt` held, so they won't clash with browser shortcuts. The hold key may be a modifier (`Shift`, `Ctrl`, `Alt`, `Cmd`) and still passes through to the page, so `Shift`+click keeps working.
 
@@ -82,7 +101,7 @@ Keys are ignored while you're typing in a text box. Start, faster and slower nev
 
 ## Privacy and permissions
 
-No accounts, no tracking, no analytics, no network requests. Settings, including your per-site speeds, stay in your browser's local extension storage.
+No accounts, no tracking, no analytics, no network requests. Settings, including your per-site speeds, stay in your browser's local extension storage. You can review, star and forget saved sites anytime in the popup's **Sites** tab; removing the extension deletes everything.
 
 | Permission | Why |
 | --- | --- |
@@ -91,7 +110,7 @@ No accounts, no tracking, no analytics, no network requests. Settings, including
 
 ## Troubleshooting
 
-- **Nothing happens when I press the key.** Reload the tab; pages opened before installing or updating don't have Scroller yet. Browser pages like `chrome://` and the Chrome Web Store don't allow extensions at all.
+- **Nothing happens when I press the key.** Open the popup: if it says *Can't reach this page*, click **Reload tab**. Pages opened before installing or updating don't have Scroller yet. Browser pages like `chrome://` and the Chrome Web Store don't allow extensions at all.
 - **Next chapter picked the wrong button, or none.** Every site is different. Switch *At the end* to **Stop**, and please [open an issue](https://github.com/ShayanHussainSB/scroller/issues/new?template=bug_report.yml) with the reader's address so detection can improve.
 - **It stops when I touch the trackpad.** That's *Pause when I scroll*; it eases back in after two seconds. Turn it off in the popup if you'd rather it didn't.
 

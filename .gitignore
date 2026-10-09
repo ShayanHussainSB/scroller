@@ -6,3 +6,6 @@
 # local tooling
 .claude/
 .impeccable/
+
+# build output
+dist/

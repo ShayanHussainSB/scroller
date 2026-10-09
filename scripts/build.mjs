@@ -1,5 +1,5 @@
 // Packages the extension for each browser from the single extension/ source.
-//   node .github/scripts/build.mjs   ->  dist/scroller-<version>-chrome.zip, dist/scroller-<version>-firefox.zip
+//   npm run build   ->  dist/scroller-<version>-chrome.zip, dist/scroller-<version>-firefox.zip
 // The Chrome manifest is the source of truth; Firefox's is derived from it here.
 import { readFileSync, writeFileSync, rmSync, mkdirSync, cpSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';

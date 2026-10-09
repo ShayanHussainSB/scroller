@@ -22,7 +22,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: node .github/scripts/check.mjs
+      - run: npm run check
 
       - name: Already released?
         id: v
@@ -36,11 +36,11 @@ jobs:
 
       - name: Build Chrome and Firefox packages
         if: steps.v.outputs.skip != 'true'
-        run: node .github/scripts/build.mjs
+        run: npm run build
 
       - name: Release notes
         if: steps.v.outputs.skip != 'true'
-        run: node .github/scripts/release-notes.mjs "${{ steps.v.outputs.version }}" > notes.md
+        run: npm run --silent release-notes -- "${{ steps.v.outputs.version }}" > notes.md
 
       - name: Publish
         if: steps.v.outputs.skip != 'true'

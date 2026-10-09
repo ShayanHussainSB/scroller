@@ -1,4 +1,4 @@
-// Sanity checks for the extension: run with `node .github/scripts/check.mjs` (also runs in CI).
+// Sanity checks for the extension: run with `npm run check` (also runs in CI and before every release).
 import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { releaseNotes } from './release-notes.mjs';

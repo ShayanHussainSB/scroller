@@ -1,0 +1,21 @@
+{
+  "name": "scroller",
+  "private": true,
+  "description": "Hands-free auto-scroll browser extension for reading manga, webtoons and long pages.",
+  "license": "MIT",
+  "author": "Shayan Hussain",
+  "homepage": "https://github.com/ShayanHussainSB/scroller#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ShayanHussainSB/scroller.git"
+  },
+  "bugs": "https://github.com/ShayanHussainSB/scroller/issues",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "check": "node scripts/check.mjs",
+    "build": "node scripts/build.mjs",
+    "release-notes": "node scripts/release-notes.mjs"
+  }
+}

@@ -1,5 +1,5 @@
 // Builds a version's GitHub release notes from CHANGELOG.md.
-//   node .github/scripts/release-notes.mjs [version]   (defaults to the manifest version)
+//   npm run release-notes [-- version]   (defaults to the manifest version)
 // Used by the Release workflow, and checked by check.mjs so a broken changelog fails in the PR, not at release time.
 import { readFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
@@ -53,13 +53,14 @@ export function releaseNotes(version, changelog = readFileSync('CHANGELOG.md', '
 
   const prev = heads[i + 1]?.[1];
   const ref = refFor(version);
-  const shot = ['docs/read.png', 'docs/popup.png'].find((p) => git('cat-file', '-e', `${ref}:${p}`));
+  // screenshots have lived in a few places over the releases; use whichever that version had
+  const shot = ['docs/screenshots/read.png', 'docs/read.png', 'docs/popup.png'].find((p) => git('cat-file', '-e', `${ref}:${p}`));
 
   return [
     summary,
     shot && `<p align="center"><img src="https://raw.githubusercontent.com/${REPO}/v${version}/${shot}" width="320" alt="Scroller ${version} popup"></p>`,
     `## What's new\n\n${changes}`,
-    git('cat-file', '-e', `${ref}:.github/scripts/build.mjs`) ? installBoth(version) : installChromeOnly(version),
+    git('cat-file', '-e', `${ref}:scripts/build.mjs`) ? installBoth(version) : installChromeOnly(version),
     prev
       ? `**Full changelog:** [v${prev}...v${version}](https://github.com/${REPO}/compare/v${prev}...v${version})`
       : '**Full changelog:** this is the first release.',

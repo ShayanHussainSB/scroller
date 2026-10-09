@@ -22,7 +22,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: node .github/scripts/check.mjs
+      - run: npm run check
 
       - name: Already released?
         id: v
@@ -34,17 +34,17 @@ jobs:
             echo "skip=true" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Build zip
+      - name: Build Chrome and Firefox packages
         if: steps.v.outputs.skip != 'true'
-        run: cd extension && zip -r "../scroller-${{ steps.v.outputs.version }}.zip" . -x '.*'
+        run: npm run build
 
       - name: Release notes
         if: steps.v.outputs.skip != 'true'
-        run: node .github/scripts/release-notes.mjs "${{ steps.v.outputs.version }}" > notes.md
+        run: npm run --silent release-notes -- "${{ steps.v.outputs.version }}" > notes.md
 
       - name: Publish
         if: steps.v.outputs.skip != 'true'
         run: |
           v=${{ steps.v.outputs.version }}
-          gh release create "v$v" "scroller-$v.zip" --target "$GITHUB_SHA" \
+          gh release create "v$v" dist/scroller-$v-chrome.zip dist/scroller-$v-firefox.zip --target "$GITHUB_SHA" \
             --title "Scroller $v" --notes-file notes.md --latest

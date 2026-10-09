@@ -5,19 +5,26 @@
 <h1 align="center">Scroller</h1>
 
 <p align="center">
-  Hands-free auto-scroll for reading manga, webtoons and long pages.<br>
+  Hands-free auto-scroll for reading manga, webtoons and long pages, in Chrome and Firefox.<br>
   Press one key, sit back, read top to bottom at exactly the speed you want.
 </p>
 
 <p align="center">
-  <img src="docs/read.png" width="320" alt="Scroller's Read tab: a big speed readout, slider, six presets from Too damn slow to Too damn fast, end-of-chapter options and a shortcut strip, on a pure black popup">
+  <a href="https://github.com/ShayanHussainSB/scroller/releases/latest"><img src="https://img.shields.io/github/v/release/ShayanHussainSB/scroller?label=release&color=000" alt="Latest release"></a>
+  <a href="https://github.com/ShayanHussainSB/scroller/actions/workflows/check.yml"><img src="https://img.shields.io/github/actions/workflow/status/ShayanHussainSB/scroller/check.yml?branch=main&label=check" alt="Check status"></a>
+  <img src="https://img.shields.io/badge/Chrome%20%7C%20Firefox-MV3-000" alt="Chrome and Firefox, Manifest V3">
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/ShayanHussainSB/scroller?color=000" alt="MIT license"></a>
+</p>
+
+<p align="center">
+  <img src="docs/screenshots/read.png" width="320" alt="Scroller's Read tab: a big speed readout, slider, six presets from Too damn slow to Too damn fast, end-of-chapter options and a shortcut strip, on a pure black popup">
 </p>
 
 <table align="center">
   <tr>
-    <td><img src="docs/feel.png" width="240" alt="Feel tab: glide or jumps, direction, pause when I scroll, status on page"></td>
-    <td><img src="docs/keys.png" width="240" alt="Keys tab: start/stop, hold to pause, faster and slower, each remappable"></td>
-    <td><img src="docs/sites.png" width="240" alt="Sites tab: every site with its saved speed and a button to forget it"></td>
+    <td><img src="docs/screenshots/feel.png" width="240" alt="Feel tab: glide or jumps, direction, pause when I scroll, status on page"></td>
+    <td><img src="docs/screenshots/keys.png" width="240" alt="Keys tab: start/stop, hold to pause, faster and slower, each remappable"></td>
+    <td><img src="docs/screenshots/sites.png" width="240" alt="Sites tab: every site with its saved speed and a button to forget it"></td>
   </tr>
   <tr>
     <td align="center"><b>Feel</b></td>
@@ -29,7 +36,6 @@
 ## Features
 
 - **A popup that stays out of the way.** Pure black for night reading, four tabs (Read, Feel, Keys, Sites) that each fit without scrolling, and red reserved for one thing: scrolling right now.
-
 - **One key to start and stop.** Defaults to `S`; change it to any key you like.
 - **Any speed, 1 to 5000 px/s.** A logarithmic slider gives the slow end as much room as the fast end. Type an exact number, or pick a preset from *Too damn slow* to *Too damn fast*.
 - **Remembers speed per site.** Every reader sizes its pages differently, so each site keeps its own speed. New sites start from the last speed you used. The **Sites** tab lists every site's speed; forget any of them (with undo).
@@ -37,12 +43,13 @@
 - **Hold to pause.** Hold `Shift` to freeze on a dense panel; let go and it carries on.
 - **Next chapter, automatically.** At the end of a chapter Scroller can find the reader's *Next* button and keep going on the next one. A whole series, hands-free.
 - **Adjust while reading.** `]` speeds up, `[` slows down. Pick how big each tap is on the Keys tab: 10%, 25%, 50% or 2×.
-- **Glide or page jumps.** Scroll continuously, or jump ½, ¾ or a full screen at a time.
+- **Glide or jumps.** Scroll continuously, or jump ½, ¾ or a full screen at a time.
 - **Up or down.**
 - **Gentle starts and stops.** Eases in and out instead of lurching.
 - **Pauses when you scroll yourself**, then eases back in after two seconds.
 - **Status at a glance.** A red **ON** badge on the toolbar icon, plus an optional pill on the page showing the speed.
 - **Works on tricky readers.** Handles sites that use CSS smooth scrolling and readers that scroll an inner panel instead of the page.
+- **Chrome and Firefox.** One codebase, a package for each, same features in both.
 
 ## Install
 
@@ -71,7 +78,7 @@ Firefox only keeps add-ons that Mozilla hasn't signed until it restarts, so afte
 
 Tabs that were already open need a reload before Scroller can run in them. [Watch releases](https://github.com/ShayanHussainSB/scroller/subscription) to hear about new versions.
 
-**From source:** `git clone https://github.com/ShayanHussainSB/scroller.git`. In Chrome, load the **`extension`** folder as above. For Firefox, run `node .github/scripts/build.mjs` and load `dist/scroller-x.y.z-firefox.zip`.
+**From source:** see [CONTRIBUTING.md](CONTRIBUTING.md#development-setup). In short: clone the repo and load the `extension/` folder in Chrome, or run `npm run build` and load the Firefox zip from `dist/`.
 
 ## Usage
 
@@ -117,69 +124,19 @@ No accounts, no tracking, no analytics, no network requests. Settings, including
 | Permission | Why |
 | --- | --- |
 | `storage` | Saves your settings and per-site speeds locally. |
-| Runs on all sites | Scroller has to listen for your start key on whatever page you're reading. It does nothing until you press it. |
+| Runs on all sites | Scroller has to listen for your start key on whatever page you're reading. It does nothing until you press it. Firefox lists this as *Access your data for all websites*. |
 
 ## Troubleshooting
 
-- **Nothing happens when I press the key.** Open the popup: if it says *Can't reach this page*, click **Reload tab**. Pages opened before installing or updating don't have Scroller yet. Browser pages like `chrome://` and the Chrome Web Store don't allow extensions at all.
+- **Nothing happens when I press the key.** Open the popup: if it says *Can't reach this page*, click **Reload tab**. Pages opened before installing or updating don't have Scroller yet. Browser pages (`chrome://`, `about:`) and the Chrome Web Store and Firefox Add-ons sites don't allow extensions at all.
 - **Next chapter picked the wrong button, or none.** Every site is different. Switch *At the end* to **Stop**, and please [open an issue](https://github.com/ShayanHussainSB/scroller/issues/new?template=bug_report.yml) with the reader's address so detection can improve.
 - **Firefox: nothing happens on any site.** Firefox lets you choose which sites an add-on can use. Open `about:addons`, click Scroller → **Permissions**, and allow *Access your data for all websites*.
 - **Firefox: Scroller disappeared.** Unsigned add-ons are unloaded when Firefox restarts; load the zip again from `about:debugging`.
 - **It stops when I touch the trackpad.** That's *Pause when I scroll*; it eases back in after two seconds. Turn it off in the popup if you'd rather it didn't.
 
-## Project structure
-
-```
-extension/
-├── manifest.json        Extension manifest (MV3), the source of truth for both browsers
-├── scripts/
-│   ├── defaults.js      Shared settings, limits and presets
-│   ├── content.js       The scroller that runs on each page
-│   └── background.js    Toolbar icon badge
-├── popup/
-│   ├── popup.html       Settings popup (markup + styles)
-│   └── popup.js         Popup behavior
-├── fonts/               Bricolage Grotesque (SIL OFL 1.1)
-└── icons/               Toolbar and store icons
-docs/                    README assets
-.github/                 Checks, build, release workflow, issue and PR templates
-```
-
-No dependencies. For Chrome there's no build step: edit a file, hit reload on `chrome://extensions`, done. `node .github/scripts/build.mjs` packages both browsers into `dist/`. The Firefox manifest is generated from the Chrome one, adding a background-scripts entry, an add-on ID and the all-sites permission Firefox asks for.
-
 ## Contributing
 
-Issues and pull requests are welcome. Please keep it dependency-free and small, and test on at least one real reader site before opening a PR. See [CHANGELOG.md](CHANGELOG.md) for what changed in each release.
-
-`main` is protected: changes land through pull requests, and the **Check** workflow must pass. Run it locally first:
-
-```sh
-node .github/scripts/check.mjs
-```
-
-It verifies the manifest, that every file it references exists, that all scripts parse, and that the version has a changelog entry.
-
-### Releasing
-
-Releases publish themselves when a version bump is merged. There's no tagging step.
-
-1. In your PR, bump `version` in `extension/manifest.json` ([semver](https://semver.org/): fixes → patch, features → minor).
-2. Add a section to the top of `CHANGELOG.md`:
-   ```md
-   ## [1.3.0] - YYYY-MM-DD
-
-   One or two sentences on what this release means for readers. This becomes the release's opening paragraph.
-
-   ### Added
-   - …
-   ```
-   and a compare link at the bottom: `[1.3.0]: https://github.com/ShayanHussainSB/scroller/compare/v1.2.0...v1.3.0`.
-3. Merge. The **Release** workflow sees a version on `main` that has no release yet, then:
-   - builds `scroller-1.3.0-chrome.zip` and `scroller-1.3.0-firefox.zip`
-   - tags `v1.3.0`
-   - publishes the release, with the summary, a screenshot, what's new, install steps and a full-changelog link
-
-Merges that don't bump the version don't release anything. Preview the notes anytime with `node .github/scripts/release-notes.mjs`. If a release ever needs re-running, use **Actions → Release → Run workflow**.
+Bug reports, sites where *Next chapter* misses, and pull requests are all welcome. [CONTRIBUTING.md](CONTRIBUTING.md) covers development setup for both browsers, the project layout, guidelines and how releases work. Please follow the [Code of Conduct](CODE_OF_CONDUCT.md), and report security issues privately as described in [SECURITY.md](SECURITY.md). [CHANGELOG.md](CHANGELOG.md) lists what changed in every release.
 
 ## License
 

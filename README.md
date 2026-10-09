@@ -148,13 +148,25 @@ It verifies the manifest, that every file it references exists, that all scripts
 
 ### Releasing
 
-1. In a PR, bump `version` in `extension/manifest.json` and add a matching section to `CHANGELOG.md`.
-2. After it merges, tag `main` and push the tag:
-   ```sh
-   git switch main && git pull
-   git tag -a v1.2.0 -m "Scroller 1.2.0" && git push origin v1.2.0
+Releases publish themselves when a version bump is merged. There's no tagging step.
+
+1. In your PR, bump `version` in `extension/manifest.json` ([semver](https://semver.org/): fixes → patch, features → minor).
+2. Add a section to the top of `CHANGELOG.md`:
+   ```md
+   ## [1.3.0] - YYYY-MM-DD
+
+   One or two sentences on what this release means for readers. This becomes the release's opening paragraph.
+
+   ### Added
+   - …
    ```
-3. The **Release** workflow checks that the tag matches the manifest, zips the `extension` folder, and publishes a GitHub release with the changelog section as its notes.
+   and a compare link at the bottom: `[1.3.0]: https://github.com/ShayanHussainSB/scroller/compare/v1.2.0...v1.3.0`.
+3. Merge. The **Release** workflow sees a version on `main` that has no release yet, then:
+   - zips `extension/` as `scroller-1.3.0.zip`
+   - tags `v1.3.0`
+   - publishes the release, with the summary, a screenshot, what's new, install steps and a full-changelog link
+
+Merges that don't bump the version don't release anything. Preview the notes anytime with `node .github/scripts/release-notes.mjs`. If a release ever needs re-running, use **Actions → Release → Run workflow**.
 
 ## License
 

@@ -4,6 +4,17 @@ All notable changes to Scroller are listed here. The format follows [Keep a Chan
 
 Each version starts with a short summary; it becomes the opening paragraph of that version's GitHub release.
 
+## [1.3.0] - 2026-10-09
+
+Scroller now runs on Firefox too. Every release ships a package for Chrome and Chromium browsers and a package for Firefox 140+, built from the same code, so both get every feature.
+
+### Added
+- **Firefox support** (140 or newer), with its own `scroller-x.y.z-firefox.zip` in each release. Load it from `about:debugging` until Scroller is signed by Mozilla.
+- The Chrome package is now named `scroller-x.y.z-chrome.zip`.
+
+### Fixed
+- The speed slider and the speed number are styled in Firefox as well as Chrome, and the speed number now hugs its digits in every browser.
+
 ## [1.2.0] - 2026-10-09
 
 A new look and more control. The popup is now pure black with four tabs (Read, Feel, Keys and Sites) that each fit without scrolling, and red only lights up while Scroller is actually scrolling. Star your favorite reader sites, see and forget the speed saved for each one, and pick how big a jump each faster/slower tap makes.
@@ -50,6 +61,7 @@ The first release: press one key and Scroller scrolls your manga, webtoon or lon
 ### Added
 - First release: one-key start/stop, 1–5000 px/s logarithmic speed with presets, glide or page-jump modes, up/down, stop or wait at the end, pause on manual scroll, on-page status pill, remappable faster/slower keys and a dark popup.
 
+[1.3.0]: https://github.com/ShayanHussainSB/scroller/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/ShayanHussainSB/scroller/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/ShayanHussainSB/scroller/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/ShayanHussainSB/scroller/releases/tag/v1.0.0

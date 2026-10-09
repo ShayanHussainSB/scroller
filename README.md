@@ -46,21 +46,32 @@
 
 ## Install
 
-Scroller isn't on the Chrome Web Store yet, so you load it unpacked. It takes 30 seconds.
+Scroller isn't in the Chrome Web Store or on Firefox Add-ons yet, so you load it yourself. It takes 30 seconds. Grab the package for your browser from the [latest release](https://github.com/ShayanHussainSB/scroller/releases/latest).
 
-1. Download **`scroller-x.y.z.zip`** from the [latest release](https://github.com/ShayanHussainSB/scroller/releases/latest) and unzip it.
-2. Open `chrome://extensions` in Chrome.
+### Chrome, Edge, Brave, Arc, Opera, Vivaldi
+
+1. Download **`scroller-x.y.z-chrome.zip`** and unzip it.
+2. Open `chrome://extensions` (or your browser's extensions page).
 3. Turn on **Developer mode** (top right).
 4. Click **Load unpacked** and select the unzipped folder.
 5. Pin Scroller from the puzzle-piece menu so the icon is one click away.
 
-Prefer the source? `git clone https://github.com/ShayanHussainSB/scroller.git` and load the **`extension`** folder instead.
+**Updating:** replace the folder with the new release, click the reload arrow on Scroller's card in `chrome://extensions`, then reload your reader tabs. Your settings are kept.
 
-Tabs that were already open need a reload before the extension can run in them.
+### Firefox (140 or newer)
 
-**Updating:** replace the folder with the new release (or `git pull`), click the reload arrow on Scroller's card in `chrome://extensions`, then reload your reader tabs. Your settings are kept. [Watch releases](https://github.com/ShayanHussainSB/scroller/subscription) to hear about new versions.
+1. Download **`scroller-x.y.z-firefox.zip`**. No need to unzip it.
+2. Open `about:debugging#/runtime/this-firefox`.
+3. Click **Load Temporary Add-on…** and pick the zip.
+4. Pin Scroller from the puzzle-piece (Extensions) menu.
 
-Works in Chrome and other Chromium browsers (Edge, Brave, Arc, Opera, Vivaldi).
+Firefox only keeps add-ons that Mozilla hasn't signed until it restarts, so after a restart, load it again the same way. Signed Firefox builds are planned.
+
+### Either browser
+
+Tabs that were already open need a reload before Scroller can run in them. [Watch releases](https://github.com/ShayanHussainSB/scroller/subscription) to hear about new versions.
+
+**From source:** `git clone https://github.com/ShayanHussainSB/scroller.git`. In Chrome, load the **`extension`** folder as above. For Firefox, run `node .github/scripts/build.mjs` and load `dist/scroller-x.y.z-firefox.zip`.
 
 ## Usage
 
@@ -112,13 +123,15 @@ No accounts, no tracking, no analytics, no network requests. Settings, including
 
 - **Nothing happens when I press the key.** Open the popup: if it says *Can't reach this page*, click **Reload tab**. Pages opened before installing or updating don't have Scroller yet. Browser pages like `chrome://` and the Chrome Web Store don't allow extensions at all.
 - **Next chapter picked the wrong button, or none.** Every site is different. Switch *At the end* to **Stop**, and please [open an issue](https://github.com/ShayanHussainSB/scroller/issues/new?template=bug_report.yml) with the reader's address so detection can improve.
+- **Firefox: nothing happens on any site.** Firefox lets you choose which sites an add-on can use. Open `about:addons`, click Scroller → **Permissions**, and allow *Access your data for all websites*.
+- **Firefox: Scroller disappeared.** Unsigned add-ons are unloaded when Firefox restarts; load the zip again from `about:debugging`.
 - **It stops when I touch the trackpad.** That's *Pause when I scroll*; it eases back in after two seconds. Turn it off in the popup if you'd rather it didn't.
 
 ## Project structure
 
 ```
 extension/
-├── manifest.json        Chrome extension manifest (MV3)
+├── manifest.json        Extension manifest (MV3), the source of truth for both browsers
 ├── scripts/
 │   ├── defaults.js      Shared settings, limits and presets
 │   ├── content.js       The scroller that runs on each page
@@ -129,10 +142,10 @@ extension/
 ├── fonts/               Bricolage Grotesque (SIL OFL 1.1)
 └── icons/               Toolbar and store icons
 docs/                    README assets
-.github/                 Checks, release workflow, issue and PR templates
+.github/                 Checks, build, release workflow, issue and PR templates
 ```
 
-No build step and no dependencies. Edit a file, hit reload on `chrome://extensions`, done.
+No dependencies. For Chrome there's no build step: edit a file, hit reload on `chrome://extensions`, done. `node .github/scripts/build.mjs` packages both browsers into `dist/`. The Firefox manifest is generated from the Chrome one, adding a background-scripts entry, an add-on ID and the all-sites permission Firefox asks for.
 
 ## Contributing
 
@@ -162,7 +175,7 @@ Releases publish themselves when a version bump is merged. There's no tagging st
    ```
    and a compare link at the bottom: `[1.3.0]: https://github.com/ShayanHussainSB/scroller/compare/v1.2.0...v1.3.0`.
 3. Merge. The **Release** workflow sees a version on `main` that has no release yet, then:
-   - zips `extension/` as `scroller-1.3.0.zip`
+   - builds `scroller-1.3.0-chrome.zip` and `scroller-1.3.0-firefox.zip`
    - tags `v1.3.0`
    - publishes the release, with the summary, a screenshot, what's new, install steps and a full-changelog link
 

@@ -52,6 +52,7 @@
     content: ""; position: absolute; inset: 0; pointer-events: none;
     background: radial-gradient(#ffffff1f 1px, transparent 1.4px) 0 0 / 5px 5px;
     -webkit-mask: linear-gradient(90deg, transparent 30%, #000);
+    mask: linear-gradient(90deg, transparent 30%, #000);
   }
   /* manga speed lines, only while scrolling */
   .top::after {
@@ -60,6 +61,9 @@
     -webkit-mask: repeating-linear-gradient(90deg, #000 0 1px, transparent 1px 13px),
                   linear-gradient(90deg, transparent 20%, #000 70%);
     -webkit-mask-composite: source-in;
+    mask: repeating-linear-gradient(90deg, #000 0 1px, transparent 1px 13px),
+          linear-gradient(90deg, transparent 20%, #000 70%);
+    mask-composite: intersect;
     transition: opacity .4s var(--ease);
   }
   body.running .top::after { opacity: 1; animation: lines .5s linear infinite; }
@@ -150,10 +154,10 @@
   /* ── Read: speed ────────────────────────────────────── */
   .readout { display: flex; align-items: baseline; gap: 6px; }
   #pxs {
-    field-sizing: content; min-width: 1ch; max-width: 5ch; padding: 0;
+    width: 2.1ch; padding: 0; /* popup.js sizes it to the digits */
     border: 0; border-radius: 4px; background: none; color: var(--ink);
     font: 800 44px/1 'Bricolage', system-ui, sans-serif; letter-spacing: -0.04em;
-    font-variant-numeric: tabular-nums; -moz-appearance: textfield;
+    font-variant-numeric: tabular-nums; -moz-appearance: textfield; appearance: textfield;
   }
   #pxs::-webkit-inner-spin-button { -webkit-appearance: none; }
   .unit { color: var(--ink-2); font-weight: 600; }
@@ -163,7 +167,7 @@
   #quip { margin: 4px 0 0; color: var(--ink-2); font-size: 12px; font-style: italic; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
   input[type=range] {
-    -webkit-appearance: none; display: block; width: 100%; height: 32px; margin: 4px 0 8px; background: none; cursor: pointer;
+    -webkit-appearance: none; appearance: none; display: block; width: 100%; height: 32px; margin: 4px 0 8px; background: none; cursor: pointer;
   }
   input[type=range]::-webkit-slider-runnable-track {
     height: 4px; border-radius: 2px;
@@ -177,6 +181,16 @@
   input[type=range]:active::-webkit-slider-thumb { transform: scale(1.15); }
   input[type=range]:focus-visible { outline: none; }
   input[type=range]:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 4px var(--bg), 0 0 0 6px var(--ink); }
+  /* Firefox draws its own slider; vendor selectors must stay in separate rules */
+  input[type=range]::-moz-range-track { height: 4px; border-radius: 2px; background: var(--line); }
+  input[type=range]::-moz-range-progress { height: 4px; border-radius: 2px; background: var(--ink); }
+  input[type=range]::-moz-range-thumb {
+    width: 20px; height: 20px; border: 0; border-radius: 50%;
+    background: var(--ink); box-shadow: 0 0 0 4px var(--bg), 0 2px 8px #000;
+    transition: transform .15s var(--ease);
+  }
+  input[type=range]:active::-moz-range-thumb { transform: scale(1.15); }
+  input[type=range]:focus-visible::-moz-range-thumb { box-shadow: 0 0 0 4px var(--bg), 0 0 0 6px var(--ink); }
 
   .presets { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
   .presets button {

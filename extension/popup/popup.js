@@ -63,8 +63,16 @@ for (const [name, pxs] of PRESETS) {
   $('#presets').append(b);
 }
 
+// Width follows the digits (field-sizing isn't available everywhere).
+const fitPxs = () => {
+  const n = Math.min(5, Math.max(1, pxsEl.value.length));
+  pxsEl.style.width = `calc(${n}ch - ${n * 0.04}em + 2px)`; // digits are tabular; undo the -0.04em tracking
+};
+pxsEl.addEventListener('input', fitPxs);
+
 function showSpeed(pxs) {
   if (document.activeElement !== pxsEl) pxsEl.value = pxs;
+  fitPxs();
   if (document.activeElement !== slider) slider.value = toSlider(pxs);
   slider.style.setProperty('--fill', (toSlider(pxs) / 10) + '%');
   const near = PRESETS.reduce((a, b) => (Math.abs(Math.log(b[1] / pxs)) < Math.abs(Math.log(a[1] / pxs)) ? b : a));

@@ -2,7 +2,11 @@
 
 All notable changes to Scroller are listed here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/).
 
-## [1.2.0] - 2026-10-08
+Each version starts with a short summary; it becomes the opening paragraph of that version's GitHub release.
+
+## [1.2.0] - 2026-10-09
+
+A new look and more control. The popup is now pure black with four tabs (Read, Feel, Keys and Sites) that each fit without scrolling, and red only lights up while Scroller is actually scrolling. Star your favorite reader sites, see and forget the speed saved for each one, and pick how big a jump each faster/slower tap makes.
 
 ### Added
 - **Sites** tab: every site with a remembered speed, the current site first, each with a button to forget it (and Undo).
@@ -25,6 +29,8 @@ All notable changes to Scroller are listed here. The format follows [Keep a Chan
 
 ## [1.1.0] - 2026-10-08
 
+Read a whole series hands-free. Scroller can now open the next chapter by itself when one ends, remembers a separate speed for every site, pauses while you hold Shift, eases in and out instead of lurching, and shows ON on its toolbar icon while it runs.
+
 ### Added
 - **Next chapter** option under *At the end*: finds the reader's next-chapter control, opens it and keeps scrolling. Works with full page loads and with readers that swap chapters in place.
 - **Per-site speed.** Speed is remembered for each website; new sites start from the last speed used. The popup shows which site it's editing.
@@ -38,6 +44,8 @@ All notable changes to Scroller are listed here. The format follows [Keep a Chan
 - The popup key grid holds four keys.
 
 ## [1.0.0] - 2026-10-08
+
+The first release: press one key and Scroller scrolls your manga, webtoon or long page for you, at any speed from too damn slow to too damn fast.
 
 ### Added
 - First release: one-key start/stop, 1–5000 px/s logarithmic speed with presets, glide or page-jump modes, up/down, stop or wait at the end, pause on manual scroll, on-page status pill, remappable faster/slower keys and a dark popup.

@@ -1,16 +1,22 @@
 name: Release
 
-# Push a tag like v1.2.0 from main to publish a release with a ready-to-load zip.
+# Publishes a release whenever main carries a manifest version that hasn't been released yet.
+# Bump the version and add a CHANGELOG section in your PR; merging it ships the release.
 on:
   push:
-    tags: ['v*.*.*']
+    branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: write
 
+concurrency: release
+
 jobs:
   release:
     runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -18,31 +24,27 @@ jobs:
           node-version: 22
       - run: node .github/scripts/check.mjs
 
-      - name: Tag must match manifest version
+      - name: Already released?
+        id: v
         run: |
           v=$(node -p "require('./extension/manifest.json').version")
-          [ "v$v" = "$GITHUB_REF_NAME" ] || { echo "Tag $GITHUB_REF_NAME does not match manifest version $v"; exit 1; }
+          echo "version=$v" >> "$GITHUB_OUTPUT"
+          if gh release view "v$v" > /dev/null 2>&1; then
+            echo "v$v is already released. Nothing to do."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Build zip
-        run: cd extension && zip -r "../scroller-${GITHUB_REF_NAME#v}.zip" . -x '.*'
+        if: steps.v.outputs.skip != 'true'
+        run: cd extension && zip -r "../scroller-${{ steps.v.outputs.version }}.zip" . -x '.*'
 
-      - name: Release notes from CHANGELOG
-        run: |
-          awk -v v="${GITHUB_REF_NAME#v}" '
-            $0 ~ "^## \\[" v "\\]" { on = 1; next }
-            on && /^## \[/ { exit }
-            on && /^\[/ { exit }
-            on { print }
-          ' CHANGELOG.md > notes.md
-          cat >> notes.md <<'MD'
-
-          ### Install
-          Download **scroller-*.zip** below and unzip it. Open `chrome://extensions`, turn on **Developer mode**, click **Load unpacked** and select the unzipped folder. Already installed? Replace the folder and click reload on Scroller's card.
-          MD
+      - name: Release notes
+        if: steps.v.outputs.skip != 'true'
+        run: node .github/scripts/release-notes.mjs "${{ steps.v.outputs.version }}" > notes.md
 
       - name: Publish
-        env:
-          GH_TOKEN: ${{ github.token }}
+        if: steps.v.outputs.skip != 'true'
         run: |
-          gh release create "$GITHUB_REF_NAME" scroller-*.zip \
-            --title "Scroller ${GITHUB_REF_NAME#v}" --notes-file notes.md --verify-tag
+          v=${{ steps.v.outputs.version }}
+          gh release create "v$v" "scroller-$v.zip" --target "$GITHUB_SHA" \
+            --title "Scroller $v" --notes-file notes.md --latest

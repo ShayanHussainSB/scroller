@@ -1,6 +1,7 @@
 // Sanity checks for the extension: run with `node .github/scripts/check.mjs` (also runs in CI).
 import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
+import { releaseNotes } from './release-notes.mjs';
 
 const ext = 'extension';
 const fail = [];
@@ -28,8 +29,8 @@ for (const f of js(ext)) {
   catch (e) { fail.push(`${f} does not parse:\n${e.stderr}`); }
 }
 
-// the version being shipped is documented
-check(readFileSync('CHANGELOG.md', 'utf8').includes(`## [${manifest.version}]`), `CHANGELOG.md has no entry for ${manifest.version}`);
+// the version being shipped is documented well enough to become release notes (summary + changes)
+try { releaseNotes(manifest.version); } catch (e) { fail.push(e.message); }
 
 if (fail.length) { console.error('✗ ' + fail.join('\n✗ ')); process.exit(1); }
-console.log(`✓ Scroller ${manifest.version}: manifest, ${refs.length} referenced files, scripts and changelog OK`);
+console.log(`✓ Scroller ${manifest.version}: manifest, ${refs.length} referenced files, scripts, changelog and release notes OK`);

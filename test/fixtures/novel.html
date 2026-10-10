@@ -17,7 +17,8 @@
 <script src="common.js"></script>
 <script>
   let h = '';
-  for (let i = 0; i < 45; i++) h += `<p>${paragraph()}</p>`;
+  const n = +(new URLSearchParams(location.search).get('n') || 45); // ?n=3000 for a huge chapter
+  for (let i = 0; i < n; i++) h += `<p>${paragraph()}</p>`;
   h += '<div class="chapter-nav"><a href="novel.html?ch=2">Previous chapter</a><a href="novel.html?ch=4">Next chapter</a></div>';
   document.getElementById('text').insertAdjacentHTML('beforeend', h);
 </script>

@@ -102,8 +102,6 @@ export async function browser({ width = 1280, height = 800, throttle = +process.
           const { data } = await cmd('Page.captureScreenshot', { format: 'png', clip: { ...clip, scale: 1 } });
           writeFileSync(path, Buffer.from(data, 'base64'));
         },
-        // navigate this same tab, keeping sessionStorage (like a reader's next-chapter link)
-        async go(fixture) { await cmd('Page.navigate', { url: pathToFileURL(join(here, 'fixtures', fixture)).href }); },
         // fails the test if the page threw anything uncaught, unless that was the point
         async close({ allowErrors = false } = {}) {
           const errors = await page.eval('window.__errors || []').catch(() => []);
@@ -112,6 +110,8 @@ export async function browser({ width = 1280, height = 800, throttle = +process.
         },
       };
       await page.until(`document.readyState === "complete" && ${ready}`);
+      // again on the loaded page: the file:// page can get a new renderer, which sometimes starts unthrottled
+      if (throttle > 1) await cmd('Emulation.setCPUThrottlingRate', { rate: throttle });
       return page;
   }
 

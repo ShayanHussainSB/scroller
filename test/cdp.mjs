@@ -29,6 +29,9 @@ export async function browser({ width = 1280, height = 800, throttle = +process.
     '--headless=new', '--remote-debugging-port=0', `--user-data-dir=${profile}`, `--window-size=${width},${height}`,
     '--no-first-run', '--no-default-browser-check', '--allow-file-access-from-files', '--hide-scrollbars',
     '--disable-background-timer-throttling', '--disable-renderer-backgrounding', '--disable-backgrounding-occluded-windows',
+    // After a key press Chrome holds page tasks until the next frame. Headless draws no frame unless the page
+    // changes, so callbacks could wait forever. Real browsers draw frames all the time.
+    '--disable-features=DeferRendererTasksAfterInput',
     'about:blank',
   ], { stdio: ['ignore', 'ignore', 'pipe'] });
   live.add(proc);

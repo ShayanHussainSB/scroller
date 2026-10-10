@@ -21,7 +21,14 @@ function measure() {
   if (!document.body) return;
   const styles = new Map(), blocks = new Map(), range = document.createRange();
   const style = (el) => styles.get(el) ?? styles.set(el, getComputedStyle(el)).get(el);
-  const walk = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+  // Only text within a couple of screens of where you are: px per word is local anyway, and a whole volume on
+  // one page would otherwise cost a full word count every couple of seconds.
+  const lo = -2 * innerHeight, hi = 3 * innerHeight;
+  const near = (r) => !r.height || (r.bottom > lo && r.top < hi);
+  const walk = document.createTreeWalker(document.body, NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT, {
+    acceptNode: (n) => n.nodeType === 3 ? NodeFilter.FILTER_ACCEPT
+      : near(n.getBoundingClientRect()) ? NodeFilter.FILTER_SKIP : NodeFilter.FILTER_REJECT, // far away: skip it all
+  });
   for (let n; (n = walk.nextNode());) {
     const words = countWords(n.data);
     if (!words) continue;
@@ -57,7 +64,7 @@ function measure() {
   let imageArea = 0;
   for (const m of document.querySelectorAll('img, canvas, video, svg')) {
     const r = m.getBoundingClientRect();
-    if (r.width >= 200 && r.height >= 200) imageArea += r.width * r.height; // skip icons and avatars
+    if (r.width >= 200 && r.height >= 200 && near(r)) imageArea += r.width * r.height; // skip icons, avatars, far pages
   }
   pxPerWord = words >= 20 ? height / words : null; // a caption or two is no basis for a reading speed
   kind = pxPerWord && textArea > imageArea ? 'text' : 'image';

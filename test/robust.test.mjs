@@ -54,3 +54,14 @@ test('zooming text mid-run re-measures words per minute', async () => {
   await p.until(`speed() > ${before * 1.3}`, 4000); // bigger text = more px per word = more px/s at the same wpm
   await p.close();
 });
+
+test('measuring words per minute on a huge chapter only reads what is near, not every word', async () => {
+  // relative, so it holds on any machine: no more than a few layout reads per element, never a full word count
+  const p = await b.open('novel.html?n=3000');
+  await p.eval('scrollTo(0, document.body.scrollHeight / 2)');
+  const best = (f) => p.eval(`Math.min(...Array.from({ length: 5 }, () => { const t = performance.now(); ${f}; return performance.now() - t }))`);
+  const rects = await best(`for (const el of document.body.querySelectorAll('*')) el.getBoundingClientRect()`);
+  const ms = await best('measure()');
+  assert.ok(ms < rects * 3 + 1, `measure ${ms.toFixed(1)}ms vs one layout read per element ${rects.toFixed(1)}ms`);
+  await p.close();
+});

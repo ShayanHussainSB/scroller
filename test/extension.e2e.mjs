@@ -118,5 +118,5 @@ try {
   proc.kill();
   server.close();
   await Promise.race([gone, sleep(5000)]);
-  rmSync(profile, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
+  try { rmSync(profile, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 }); } catch {}
 }

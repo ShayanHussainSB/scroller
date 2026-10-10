@@ -74,6 +74,8 @@ export async function browser({ width = 1280, height = 800 } = {}) {
           if (type !== 'down') await cmd('Input.dispatchKeyEvent', { type: 'keyUp', ...base });
         },
         async wheel(dy, x = 640, y = 400) { await cmd('Input.dispatchMouseEvent', { type: 'mouseWheel', x, y, deltaX: 0, deltaY: dy }); },
+        // simulate a slow machine (CI, old laptops): rate 4 = four times slower
+        throttle: (rate) => cmd('Emulation.setCPUThrottlingRate', { rate }),
         async click(sel) { await page.eval(`document.querySelector(${JSON.stringify(sel)}).click()`); },
         async shot(path, { full } = {}) {
           const clip = full && await page.eval('({ x: 0, y: 0, width: document.documentElement.scrollWidth, height: document.documentElement.scrollHeight, scale: 1 })');
@@ -104,11 +106,13 @@ export async function browser({ width = 1280, height = 800 } = {}) {
         pre: `(${fakePopupApi})(${JSON.stringify(settings)}, ${JSON.stringify(state)})`,
       }),
     async close() {
-      ws.close();
+      // Browser.close shuts down every Chrome process (on Linux, helpers outlive a killed parent)
       const gone = new Promise((r) => (proc.exitCode !== null ? r() : proc.once('exit', r)));
+      await Promise.race([send('Browser.close').catch(() => {}), sleep(2000)]);
+      await Promise.race([gone, sleep(5000)]);
+      ws.close();
       proc.kill();
-      await Promise.race([gone, sleep(5000)]); // Chrome writes its profile on the way out
-      rmSync(profile, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
+      try { rmSync(profile, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 }); } catch {} // just a temp dir
     },
   };
 }

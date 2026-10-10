@@ -59,7 +59,7 @@ test/                    Headless Chrome on fixture pages, no dependencies (how 
 └── e2e/                 npm run test:e2e: the real extension in real Chrome (run by hand)
 docs/
 ├── TESTING.md           Test layers, writing a test, the real-site checklist for releases
-└── screenshots/         Images used by the README and release notes
+└── screenshots/         Popup images for the README, release notes and website; site/ has captures of the website
 .github/                 CI workflows, Dependabot, issue and PR templates
 ```
 

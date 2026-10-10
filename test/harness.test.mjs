@@ -70,6 +70,8 @@ test('a failing test that leaks a browser ends the run, and its Chrome is gone',
   assert.notEqual(r.status, 0, 'the failure is reported');
   const profile = r.stdout.match(/profile:(\S+)/)?.[1];
   assert.ok(profile, r.stdout);
-  const left = execFileSync('ps', ['-eo', 'command'], { encoding: 'utf8' }).split('\n').filter((l) => l.includes(profile));
-  assert.deepEqual(left, [], 'Chrome still running');
+  // killed at exit; its helper processes take a moment to follow
+  const left = () => execFileSync('ps', ['-eo', 'command'], { encoding: 'utf8' }).split('\n').filter((l) => l.includes(profile));
+  for (let i = 0; i < 50 && left().length; i++) await new Promise((r) => setTimeout(r, 100));
+  assert.deepEqual(left(), [], 'Chrome still running');
 });

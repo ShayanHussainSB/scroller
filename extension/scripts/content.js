@@ -48,7 +48,7 @@ function tick(now) {
   if (on && reported !== location.href) report(); // in-place chapter change may have cleared the icon
 
   const goal = on && !held && now >= pausedUntil ? 1 : 0;
-  level = goal > level ? Math.min(1, level + dt / RAMP) : Math.max(0, level - dt / RAMP);
+  level = goal > level ? Math.min(1, level + dt / RAMP) : goal < level ? Math.max(0, level - dt / RAMP) : level; // hold steady at the goal
   if (!on && !level) return (looping = false);
 
   const before = target.scrollTop;

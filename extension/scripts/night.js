@@ -13,11 +13,11 @@ function nightLayers() {
   nightHost = document.createElement('scroller-night');
   const root = nightHost.attachShadow({ mode: 'open' });
   root.innerHTML = `<style>
-    div{position:fixed;inset:0;z-index:2147483646;pointer-events:none;opacity:0;transition:opacity .5s,width .5s,left .5s}
+    div{position:fixed;inset:0;z-index:2147483646;pointer-events:none;opacity:0;transition:opacity .5s,transform .5s}
     .warm{background:#ff8a2a;mix-blend-mode:multiply}
     .dim{background:#000}
-    .l{right:auto;width:0;background:linear-gradient(to left,transparent,#000 ${EDGE}px)}
-    .r{left:100%;background:linear-gradient(to right,transparent,#000 ${EDGE}px)}
+    .l{transform:translateX(-100%);background:linear-gradient(to left,transparent,#000 ${EDGE}px)}
+    .r{transform:translateX(100%);background:linear-gradient(to right,transparent,#000 ${EDGE}px)}
     @media (prefers-reduced-motion:reduce){div{transition:none}}
   </style><div class="warm"></div><div class="dim"></div><div class="l"></div><div class="r"></div>`;
   [warmEl, dimEl, ...sides] = root.querySelectorAll('div');
@@ -56,8 +56,9 @@ function focus(fresh) {
   if (!s.focus || !col) return (l.style.opacity = r.style.opacity = 0);
   const appear = !(l.style.opacity > 0);
   if (appear) l.style.transition = r.style.transition = 'none'; // appear in place instead of sliding in
-  l.style.width = Math.max(0, col.l - PAD) + 'px';
-  r.style.left = Math.min(innerWidth, col.r + PAD) + 'px';
+  // full-screen layers slid aside (transform, not width/left: no relayout while they move)
+  l.style.transform = `translateX(${Math.max(0, col.l - PAD) - innerWidth}px)`;
+  r.style.transform = `translateX(${Math.min(innerWidth, col.r + PAD)}px)`;
   if (appear) { l.offsetWidth; l.style.transition = r.style.transition = ''; }
   l.style.opacity = r.style.opacity = FOCUS;
 }

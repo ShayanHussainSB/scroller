@@ -28,6 +28,12 @@ for (const f of ff.background.scripts) check(existsSync(`${ext}/${f}`), `Firefox
 check(!ff.background.service_worker, 'Firefox manifest must not use background.service_worker');
 check(ff.browser_specific_settings?.gecko?.id, 'Firefox manifest needs browser_specific_settings.gecko.id');
 
+// the test harness loads the same content scripts, in the same order
+const stub = readFileSync('test/stub.js', 'utf8').match(/for \(const f of (\[[^\]]*\])/)?.[1];
+const content = manifest.content_scripts[0].js.map((f) => f.replace('scripts/', ''));
+check(stub && JSON.stringify(JSON.parse(stub.replace(/'/g, '"'))) === JSON.stringify(content),
+  'test/stub.js script list must match manifest content_scripts');
+
 // every script parses
 const js = (dir) => readdirSync(dir, { withFileTypes: true })
   .flatMap((d) => (d.isDirectory() ? js(`${dir}/${d.name}`) : d.name.endsWith('.js') ? [`${dir}/${d.name}`] : []));

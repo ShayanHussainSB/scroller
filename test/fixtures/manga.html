@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><title>Manga chapter</title>
+<style>
+  body { margin: 0; background: #1a1a1a; color: #ddd; font: 16px system-ui; }
+  header { height: 64px; display: flex; align-items: center; padding: 0 20px; background: #000; }
+  .reader { max-width: 900px; margin: 0 auto; text-align: center; }
+  .reader img.page { display: block; margin: 0 auto 24px; max-width: 100%; height: auto; }
+  .banner { display: block; margin: 0 auto 24px; }
+  .logo { width: 32px; height: 32px; }
+  footer { height: 400px; }
+</style>
+<header><img class="logo" alt="logo" width="32" height="32" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Ccircle cx='16' cy='16' r='14' fill='red'/%3E%3C/svg%3E"> Manga · Chapter 12</header>
+<div class="reader" id="reader"></div>
+<footer><a href="manga.html?ch=13">Next ›</a></footer>
+<script src="common.js"></script>
+<script>
+  let h = '';
+  for (let i = 0; i < 10; i++) {
+    h += img(800, 1150, 200 + i * 15, `page ${i + 1}`, 'class="page"');
+    if (i === 3) h += img(728, 90, 50, 'ad', 'class="banner"');
+  }
+  document.getElementById('reader').innerHTML = h;
+</script>
+<script src="../stub.js"></script>
+</html>

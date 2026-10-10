@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><title>Webtoon chapter</title>
+<style>
+  body { margin: 0; background: #fff; font: 16px system-ui; }
+  header { position: sticky; top: 0; height: 56px; background: #111; color: #fff; display: flex; align-items: center; padding: 0 20px; z-index: 5; }
+  main { width: 720px; margin: 0 auto; }
+  main img { display: block; width: 720px; height: auto; }
+  .gap { height: 600px; background: #fff; }
+  .ad { position: fixed; right: 12px; top: 120px; }
+  nav { display: flex; justify-content: space-between; padding: 40px 0; }
+  .comments { height: 900px; background: #f3f3f3; padding: 20px; }
+</style>
+<header>Webtoon · Chapter <span id="ch"></span></header>
+<main id="strip"></main>
+<div class="ad"><img width="160" height="600" alt="ad" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='600'%3E%3Crect width='100%25' height='100%25' fill='%23fc0'/%3E%3C/svg%3E"></div>
+<script src="common.js"></script>
+<script>
+  const ch = +(new URLSearchParams(location.search).get('ch') || 1);
+  document.getElementById('ch').textContent = ch;
+  let h = '';
+  for (let i = 0; i < 8; i++) h += img(720, 1800, i * 40, `panel ${i + 1}`) + (i % 3 === 1 ? '<div class="gap"></div>' : '');
+  h += `<nav><a href="webtoon.html?ch=${ch - 1}">‹ Previous</a><a href="webtoon.html?ch=${ch + 1}" class="next-btn">Next chapter ›</a></nav><div class="comments">Comments</div>`;
+  document.getElementById('strip').innerHTML = h;
+</script>
+<script src="../stub.js"></script>
+</html>

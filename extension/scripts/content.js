@@ -5,7 +5,7 @@ const bus = new EventTarget();
 const emit = (type) => bus.dispatchEvent(new Event(type));
 // on = what the user asked for; level eases 0..1 so starts, stops and pauses glide instead of jerk.
 let on = false, looping = false, level = 0, held = false;
-let last = 0, carry = 0, sinceJump = 0, nextJump = null, aim = null, pilledAt = 0, stuckFor = 0, pausedUntil = 0, target = null;
+let last = 0, carry = 0, sinceJump = 0, nextJump = null, aim = null, lastY = 0, pilledAt = 0, stuckFor = 0, pausedUntil = 0, target = null;
 const RAMP = 500; // ms to ease fully in or out
 const HOST = location.hostname.replace(/^www\./, '') || 'local';
 let speed = () => s.sites[HOST] ?? s.pxs;                       // hook: px/s right now
@@ -40,8 +40,11 @@ function tick(now) {
   const dt = Math.min(now - last, 100); // ignore long gaps (tab in background)
   last = now;
   if (!target.isConnected) { target = findTarget(); aim = null; }
-  // the page moved far on its own (in-place chapter swap, keyboard paging): jump from where it is now
-  if (aim !== null && Math.abs(target.scrollTop - aim) > 2 * target.clientHeight) aim = nextJump = null;
+  // The page moved on its own (in-place chapter swap, keyboard paging): jump from where it is now.
+  // A smooth jump still catching up only ever moves toward aim, however far behind a slow machine leaves it.
+  const y = target.scrollTop, back = (y - lastY) * s.dir < -target.clientHeight / 2;
+  if (aim !== null && (back || (y - aim) * s.dir > target.clientHeight)) aim = nextJump = null;
+  lastY = y;
   if (on && reported !== location.href) report(); // in-place chapter change may have cleared the icon
 
   const goal = on && !held && now >= pausedUntil ? 1 : 0;
@@ -91,6 +94,7 @@ function start() {
   if (!looping) {
     looping = true;
     target = findTarget();
+    lastY = target.scrollTop;
     last = performance.now();
     carry = 0;
     requestAnimationFrame(tick);

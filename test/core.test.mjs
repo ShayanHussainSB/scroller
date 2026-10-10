@@ -79,3 +79,31 @@ test('popup state comes from the pageState hook', async () => {
   assert.equal(st.host, 'local');
   await p.close();
 });
+
+test('fast jumps on a slow machine never go backwards', async () => {
+  for (const mode of ['step', 'pages']) {
+    const p = await b.open('webtoon.html', { mode, pxs: 5000 });
+    await p.throttle(20);
+    // where each jump aims: smooth scrolls lag far behind here, which must not make a jump re-aim backwards
+    await p.eval(`window.aims = []; bus.addEventListener('tick', () => aim !== null && aim !== aims.at(-1) && aims.push(aim))`);
+    await p.key('s');
+    await sleep(4000);
+    const aims = await p.eval('aims');
+    const back = aims.findIndex((y, i) => i && y <= aims[i - 1]);
+    assert.equal(back, -1, `${mode}: aimed back ${aims[back - 1]} → ${aims[back]}`);
+    assert.ok(aims.length > 5, `${mode}: jumped (${aims})`);
+    await p.close();
+  }
+});
+
+test('jumps follow a reader that swaps the chapter in place and jumps to the top', async () => {
+  const p = await b.open('webtoon.html', { mode: 'step', pxs: 3000 });
+  await p.eval(`window.aims = []; bus.addEventListener('tick', () => aim !== null && aim !== aims.at(-1) && aims.push(aim))`);
+  await p.key('s');
+  await p.until('scrollY > 3000');
+  await p.eval(`scrollTo({ top: 0, behavior: 'instant' }); aims.length = 0`); // the new chapter starts at the top
+  await p.until('aims.length >= 2');
+  const aims = await p.eval('aims');
+  assert.ok(aims[0] <= 1200, `kept jumping from the new top: ${aims}`);
+  await p.close();
+});

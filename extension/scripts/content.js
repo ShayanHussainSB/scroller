@@ -1,14 +1,24 @@
+// Core engine. Feature scripts (night, pages, wpm, session) load after this one in the same scope and plug in
+// by listening on `bus` (start, stop, tick, settings, advance) or by wrapping the `let` hooks marked "hook".
 let s = { ...DEFAULTS };
+const bus = new EventTarget();
+const emit = (type) => bus.dispatchEvent(new Event(type));
 // on = what the user asked for; level eases 0..1 so starts, stops and pauses glide instead of jerk.
 let on = false, looping = false, level = 0, held = false;
-let last = 0, carry = 0, sinceJump = 0, stuckFor = 0, pausedUntil = 0, target = null;
+let last = 0, carry = 0, sinceJump = 0, nextJump = null, aim = null, pilledAt = 0, stuckFor = 0, pausedUntil = 0, target = null;
 const RAMP = 500; // ms to ease fully in or out
 const HOST = location.hostname.replace(/^www\./, '') || 'local';
-const speed = () => s.sites[HOST] ?? s.pxs;
+let speed = () => s.sites[HOST] ?? s.pxs;                       // hook: px/s right now
+let speedLabel = () => `${speed()} px/s`;                       // hook: how the pill names the speed
+let jump = (from) => target.clientHeight * s.step;            // hook: px for the next jump from scroll position `from`
+let canAdvance = () => true;                                    // hook: false stops at the end instead of next chapter
+let pillInfo = () => ({});                                      // hook: { left, sleep, progress } for the pill
+let pageState = () => ({ running: on, host: HOST, vh: innerHeight }); // hook: what the popup learns about this page
 
-chrome.storage.local.get(DEFAULTS, (v) => (s = v));
+chrome.storage.local.get(DEFAULTS, (v) => { s = v; emit('settings'); });
 chrome.storage.onChanged.addListener((c) => {
   for (const k in c) if (k in DEFAULTS) s[k] = c[k].newValue;
+  emit('settings');
   if (on) badge();
 });
 
@@ -29,7 +39,9 @@ function findTarget() {
 function tick(now) {
   const dt = Math.min(now - last, 100); // ignore long gaps (tab in background)
   last = now;
-  if (!target.isConnected) target = findTarget();
+  if (!target.isConnected) { target = findTarget(); aim = null; }
+  // the page moved far on its own (in-place chapter swap, keyboard paging): jump from where it is now
+  if (aim !== null && Math.abs(target.scrollTop - aim) > 2 * target.clientHeight) aim = nextJump = null;
   if (on && reported !== location.href) report(); // in-place chapter change may have cleared the icon
 
   const goal = on && !held && now >= pausedUntil ? 1 : 0;
@@ -37,12 +49,17 @@ function tick(now) {
   if (!on && !level) return (looping = false);
 
   const before = target.scrollTop;
-  if (s.mode === 'step') {
+  if (s.mode !== 'smooth') {
     if (goal) sinceJump += dt;
-    const jump = target.clientHeight * s.step;
-    if (sinceJump >= (jump / speed()) * 1000) {
+    // Aim from where the last jump will land, not where its smooth scroll is right now,
+    // so quick jumps don't come up short.
+    const from = aim ?? target.scrollTop;
+    nextJump ??= jump(from);
+    if (sinceJump >= (nextJump / speed()) * 1000) {
       sinceJump = 0;
-      target.scrollBy({ top: jump * s.dir, behavior: 'smooth' });
+      aim = Math.max(0, Math.min(target.scrollHeight - target.clientHeight, from + nextJump * s.dir));
+      target.scrollTo({ top: aim, behavior: 'smooth' });
+      nextJump = null;
     }
   } else {
     const ease = level * level * (3 - 2 * level); // smoothstep
@@ -61,6 +78,8 @@ function tick(now) {
   stuckFor = goal && atEdge && target.scrollTop === before ? stuckFor + dt : 0;
   if (stuckFor > 1500 && s.atEnd === 'stop') { stop(); level = 0; }
   if (stuckFor > 1500 && s.atEnd === 'next') advance();
+  emit('tick');
+  if (on && now - pilledAt > 500) badge(); // keep time left fresh
 
   requestAnimationFrame(tick);
 }
@@ -68,6 +87,7 @@ function tick(now) {
 function start() {
   on = true;
   sinceJump = stuckFor = pausedUntil = 0;
+  nextJump = aim = null;
   if (!looping) {
     looping = true;
     target = findTarget();
@@ -75,9 +95,11 @@ function start() {
     carry = 0;
     requestAnimationFrame(tick);
   }
+  emit('start');
   badge();
 }
-function stop() { on = false; held = false; badge(); }
+// msg: a farewell for the pill ("Good night…"); it lingers longer than the plain "Stopped".
+function stop(msg) { on = false; held = false; emit('stop'); badge(msg, msg && 4000); }
 
 // Tell the background script so the toolbar icon can show "ON".
 let reported = null;
@@ -115,35 +137,41 @@ const RESUME = 'scroller:resume';
 let advancedFrom = null;
 function advance() {
   stuckFor = 0;
-  const el = s.dir > 0 && findNext();
+  const el = s.dir > 0 && canAdvance() && findNext();
+  if (!on) return; // canAdvance stopped us with its own message
   if (!el || advancedFrom === location.href) { stop(); level = 0; return; } // nothing to follow, or it didn't move on
   advancedFrom = location.href;
+  emit('advance');
   try { sessionStorage.setItem(RESUME, Date.now()); } catch {}
   badge('Next chapter…');
   if (el.tagName === 'LINK' || el.target === '_blank') location.href = el.href;
   else el.click();
 }
 
+let resumed = false; // this page load continues a next-chapter run
 try {
   const t = +sessionStorage.getItem(RESUME);
   sessionStorage.removeItem(RESUME);
   if (Date.now() - t < 60000) {
+    resumed = true;
     const go = () => setTimeout(start, 800); // let the first images settle
     document.readyState === 'complete' ? go() : addEventListener('load', go, { once: true });
   }
 } catch {}
 
-function nudge(up) {
+let nudge = function (up) { // hook
   const cur = speed();
   let pxs = Math.round(up ? cur * s.nudge : cur / s.nudge);
   if (pxs === cur) pxs += up ? 1 : -1; // small speeds would otherwise round back to themselves
   pxs = Math.min(MAX, Math.max(MIN, pxs));
   chrome.storage.local.set({ pxs, sites: { ...s.sites, [HOST]: pxs } });
-}
+};
 
 // On-page pill, inside a shadow root so site CSS can't touch it.
 let host, pill, hideTimer;
-function badge(text) {
+// linger: ms a stopped-state message stays up.
+function badge(text, linger = 1200) {
+  pilledAt = performance.now();
   if (on !== !!reported) report();
   if (!s.badge) return host?.remove();
   if (!host) {
@@ -160,10 +188,12 @@ function badge(text) {
   }
   if (!host.isConnected) document.documentElement.append(host);
   pill.className = on ? 'on' : '';
-  pill.textContent = text || (!on ? 'Stopped' : held ? 'Paused' : `${speed()} px/s${s.dir < 0 ? ' · up' : ''}`);
+  const { left, sleep } = pillInfo();
+  pill.textContent = text || (!on ? 'Stopped' : held ? 'Paused'
+    : [`${speedLabel()}${s.dir < 0 ? ' · up' : ''}`, left, sleep].filter(Boolean).join(' · '));
   pill.style.opacity = 1;
   clearTimeout(hideTimer);
-  if (!on) hideTimer = setTimeout(() => (pill.style.opacity = 0), 1200);
+  if (!on) hideTimer = setTimeout(() => (pill.style.opacity = 0), linger);
 }
 
 const same = (a, b) => a.length === 1 ? a.toLowerCase() === b.toLowerCase() : a === b;
@@ -191,11 +221,14 @@ addEventListener('keyup', (e) => same(e.key, s.holdKey) && release(), true);
 addEventListener('blur', release); // key let go while the window was in the background
 
 // Your own scrolling wins instantly; we ease back in two seconds after you stop.
-const manual = () => { if (on && s.pauseOnManual) { pausedUntil = performance.now() + 2000; level = 0; } };
+const manual = () => {
+  aim = nextJump = null; // you moved the page; jump from wherever you left it
+  if (on && s.pauseOnManual) { pausedUntil = performance.now() + 2000; level = 0; }
+};
 addEventListener('wheel', manual, { passive: true, capture: true });
 addEventListener('touchmove', manual, { passive: true, capture: true });
 
 chrome.runtime.onMessage.addListener((msg, _, reply) => {
   if (msg === 'toggle') toggle();
-  reply({ running: on, host: HOST, vh: innerHeight });
+  reply(pageState());
 });

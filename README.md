@@ -6,7 +6,8 @@
 
 <p align="center">
   Hands-free auto-scroll for reading manga, webtoons and novels, in Chrome and Firefox.<br>
-  Press one key, sit back, read top to bottom at exactly the speed you want. Even in bed.
+  Press one key, sit back, read top to bottom at exactly the speed you want. Even in bed.<br>
+  <a href="https://shayanhussainsb.github.io/scroller/"><b>See it in action on the website</b></a>
 </p>
 
 <p align="center">

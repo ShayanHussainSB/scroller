@@ -41,9 +41,15 @@ extension/               Everything the browser loads
 ├── popup/               Settings popup (popup.html holds markup and styles)
 ├── fonts/               Bricolage Grotesque (SIL OFL 1.1)
 └── icons/
+site/                    The website (GitHub Pages): one page with inline CSS and JS, no build step
+├── index.html           The page, its demos and the original manga art they use
+├── og.png               Social preview image (a capture of the page's first screen)
+├── robots.txt, sitemap.xml, llms.txt   For search engines and AI assistants
+└── PRODUCT.md, DESIGN.md               Notes for whoever designs the site next (not published)
 scripts/                 Tooling (Node, no dependencies)
-├── check.mjs            npm run check: validates manifests, files, syntax, changelog
+├── check.mjs            npm run check: validates manifests, files, syntax, changelog, the website's links
 ├── build.mjs            npm run build: packages dist/*-chrome.zip and *-firefox.zip
+├── site.mjs             npm run site: puts the website together in dist/site/ with the font, icons and screenshots
 └── release-notes.mjs    npm run release-notes: release notes from CHANGELOG.md
 test/                    Headless Chrome on fixture pages, no dependencies (how to run: test/README.md)
 ├── harness/             DevTools-protocol driver (cdp.mjs) and the fake chrome API for fixtures (stub.js)
@@ -75,6 +81,17 @@ docs/
 5. Open the PR and fill in the template, with screenshots for anything visual.
 
 `main` is protected: changes land through pull requests, the **Check** workflow must pass, and review conversations must be resolved. PRs are merged with merge commits so individual commits stay in history.
+
+## The website
+
+`site/index.html` is the whole site. It borrows the font, icons and popup screenshots from the rest of the repo instead of copying them, so preview it through the assembled folder:
+
+```sh
+npm run site
+cd dist/site && python3 -m http.server   # then open http://localhost:8000
+```
+
+`npm run site` also swaps the version the page was written against (its `<meta name="version">`) for the one in the manifest, so download links always name the current release. After every **Release** run on `main`, the **Website** workflow publishes `dist/site/` to GitHub Pages; nothing else is needed when you ship a version. Keep the site's claims in step with the README.
 
 ## Releasing
 

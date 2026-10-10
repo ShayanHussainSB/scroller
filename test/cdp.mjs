@@ -48,14 +48,13 @@ export async function browser({ width = 1280, height = 800 } = {}) {
     ws.send(JSON.stringify({ id, method, params, sessionId }));
   });
 
-  return {
-    // settings: storage values the page starts with (merged over DEFAULTS), e.g. { mode: 'pages' }
-    async open(fixture, settings = {}, { width: w = width, height: h = height } = {}) {
-      const url = pathToFileURL(join(here, 'fixtures', fixture)).href + '#' + encodeURIComponent(JSON.stringify(settings));
+  // pre: script run before the page's own (used to fake the extension API for the popup)
+  async function load(url, { width: w = width, height: h = height, pre, ready = 'window.__ready' } = {}) {
       const { targetId } = await send('Target.createTarget', { url: 'about:blank' });
       const { sessionId } = await send('Target.attachToTarget', { targetId, flatten: true });
       const cmd = (m, p) => send(m, p, sessionId);
-      await cmd('Emulation.setDeviceMetricsOverride', { width: w, height: h, deviceScaleFactor: 1, mobile: false });
+      await cmd('Emulation.setDeviceMetricsOverride', { width: w, height: h, deviceScaleFactor: 2, mobile: false });
+      if (pre) { await cmd('Page.enable'); await cmd('Page.addScriptToEvaluateOnNewDocument', { source: pre }); }
       await cmd('Page.navigate', { url });
       const page = {
         async eval(expr) {
@@ -75,17 +74,69 @@ export async function browser({ width = 1280, height = 800 } = {}) {
           if (type !== 'down') await cmd('Input.dispatchKeyEvent', { type: 'keyUp', ...base });
         },
         async wheel(dy, x = 640, y = 400) { await cmd('Input.dispatchMouseEvent', { type: 'mouseWheel', x, y, deltaX: 0, deltaY: dy }); },
-        async shot(path) {
-          const { data } = await cmd('Page.captureScreenshot', { format: 'png' });
+        async click(sel) { await page.eval(`document.querySelector(${JSON.stringify(sel)}).click()`); },
+        async shot(path, { full } = {}) {
+          const clip = full && await page.eval('({ x: 0, y: 0, width: document.documentElement.scrollWidth, height: document.documentElement.scrollHeight, scale: 1 })');
+          const { data } = await cmd('Page.captureScreenshot', { format: 'png', clip, captureBeyondViewport: !!full });
           writeFileSync(path, Buffer.from(data, 'base64'));
         },
         // navigate this same tab, keeping sessionStorage (like a reader's next-chapter link)
         async go(fixture) { await cmd('Page.navigate', { url: pathToFileURL(join(here, 'fixtures', fixture)).href }); },
         close: () => send('Target.closeTarget', { targetId }),
       };
-      await page.until('document.readyState === "complete" && window.__ready');
+      await page.until(`document.readyState === "complete" && ${ready}`);
       return page;
-    },
+  }
+
+  return {
+    // settings: storage values the page starts with (merged over DEFAULTS), e.g. { mode: 'pages' }
+    open: (fixture, settings = {}, size) =>
+      load(pathToFileURL(join(here, 'fixtures', fixture)).href + '#' + encodeURIComponent(JSON.stringify(settings)), size),
+    // The real popup with a fake extension API. state: what the page answers (null = unreachable page).
+    // In the popup, __set(o) changes storage, __state(o) changes what the page answers on the next ask.
+    popup: (settings = {}, state = { running: false, host: 'example.com', vh: 800 }, size = {}) =>
+      load(pathToFileURL(join(here, '..', 'extension', 'popup', 'popup.html')).href, {
+        width: 320, height: 600, ...size, ready: 'document.body.classList.contains("ready")',
+        pre: `(${fakePopupApi})(${JSON.stringify(settings)}, ${JSON.stringify(state)})`,
+      }),
     async close() { ws.close(); proc.kill(); await sleep(100); rmSync(profile, { recursive: true, force: true }); },
   };
+}
+
+// Runs inside the popup page before its scripts.
+function fakePopupApi(store, state) {
+  const changed = [];
+  const clone = (v) => (v === undefined ? v : structuredClone(v));
+  window.__sent = [];
+  window.chrome = {
+    storage: {
+      local: {
+        get(defaults, cb) { const v = clone({ ...defaults, ...store }); setTimeout(() => cb(v)); },
+        set(o, cb) {
+          const c = {};
+          for (const k in o) { c[k] = { oldValue: clone(store[k]), newValue: clone(o[k]) }; store[k] = clone(o[k]); }
+          setTimeout(() => { for (const f of changed) f(c, 'local'); cb?.(); });
+          return Promise.resolve();
+        },
+      },
+      onChanged: { addListener: (f) => changed.push(f) },
+    },
+    runtime: { lastError: undefined },
+    tabs: {
+      query: (q, cb) => setTimeout(() => cb([{ id: 1 }])),
+      reload: () => window.__sent.push('reload'),
+      sendMessage(tabId, msg, opts, cb) {
+        window.__sent.push(msg);
+        if (msg === 'toggle' && state) state = { ...state, running: !state.running };
+        setTimeout(() => {
+          chrome.runtime.lastError = state ? undefined : { message: 'Could not establish connection' };
+          cb(clone(state));
+          chrome.runtime.lastError = undefined;
+        });
+      },
+    },
+  };
+  window.__store = store;
+  window.__set = (o) => new Promise((r) => chrome.storage.local.set(o, () => setTimeout(r, 0)));
+  window.__state = (o) => { state = o; };
 }

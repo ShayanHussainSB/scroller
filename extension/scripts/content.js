@@ -168,7 +168,9 @@ let nudge = function (up) { // hook
 };
 
 // On-page pill, inside a shadow root so site CSS can't touch it.
-let host, pill, hideTimer;
+// ● 40 px/s | ~2:40 left | ☾ 12m · 2/3, with a hairline of chapter progress along the bottom.
+const MOON = '<svg viewBox="0 0 12 12" width="11" height="11" aria-hidden="true"><path d="M10.2 7.6A4.6 4.6 0 0 1 4.4 1.8a4.6 4.6 0 1 0 5.8 5.8z" fill="currentColor"/></svg>';
+let host, pill, hideTimer, parts;
 // linger: ms a stopped-state message stays up.
 function badge(text, linger = 1200) {
   pilledAt = performance.now();
@@ -178,22 +180,46 @@ function badge(text, linger = 1200) {
     host = document.createElement('div');
     const root = host.attachShadow({ mode: 'open' });
     root.innerHTML = `<style>
-      div{position:fixed;right:16px;bottom:16px;z-index:2147483647;padding:7px 12px;border-radius:999px;
-        font:600 12px/1 system-ui,sans-serif;font-variant-numeric:tabular-nums;color:#f5f5f5;background:#000000eb;
-        border:1px solid #333;box-shadow:0 6px 20px #0006;transition:opacity .25s ease-out;pointer-events:none}
-      div.on::before{content:"";display:inline-block;width:6px;height:6px;margin-right:7px;border-radius:50%;
-        background:#ff4f5a;vertical-align:1px}
-    </style><div></div>`;
-    pill = root.querySelector('div');
+      .p{position:fixed;right:16px;bottom:16px;z-index:2147483647;display:flex;align-items:center;gap:9px;
+        padding:8px 13px 9px 12px;border-radius:999px;overflow:hidden;pointer-events:none;
+        font:600 12px/1 system-ui,-apple-system,'Segoe UI',sans-serif;font-variant-numeric:tabular-nums;letter-spacing:0;
+        color:#f5f5f5;background:#000000eb;border:1px solid #2e2e2e;box-shadow:0 8px 24px #0009,0 1px 2px #000;
+        transition:opacity .3s cubic-bezier(.2,.8,.2,1),transform .3s cubic-bezier(.2,.8,.2,1)}
+      .p.gone{opacity:0;transform:translateY(4px)}
+      .dot{width:6px;height:6px;border-radius:50%;background:#737373;flex:none}
+      .on .dot{background:#ff4f5a;animation:pulse 1.6s ease-in-out infinite}
+      .held .dot{background:#a3a3a3}
+      @keyframes pulse{50%{opacity:.35}}
+      .seg{display:flex;align-items:center;gap:5px;white-space:nowrap}
+      .seg+.seg::before{content:"";width:1px;height:11px;margin-right:4px;background:#ffffff2e}
+      .dim{color:#a3a3a3}
+      .seg svg{color:#a3a3a3;margin-top:-1px}
+      [hidden]{display:none}
+      .bar{position:absolute;left:14px;right:14px;bottom:0;height:2px;border-radius:2px;background:#ffffff14}
+      .bar i{display:block;height:100%;width:calc(var(--p,0)*100%);border-radius:inherit;background:#f5f5f5a6;
+        transition:width .6s linear}
+      @media (prefers-reduced-motion:reduce){.p,.bar i{transition:none}.on .dot{animation:none}}
+    </style><div class="p gone"><i class="dot"></i><span class="seg"></span><span class="seg dim"></span>`
+      + `<span class="seg dim">${MOON}<span></span></span><span class="bar"><i></i></span></div>`;
+    pill = root.querySelector('.p');
+    const [label, left, sleep] = root.querySelectorAll('.seg');
+    parts = { label, left, sleep, sleepText: sleep.querySelector('span'), bar: root.querySelector('.bar') };
   }
   if (!host.isConnected) document.documentElement.append(host);
-  pill.className = on ? 'on' : '';
-  const { left, sleep } = pillInfo();
-  pill.textContent = text || (!on ? 'Stopped' : held ? 'Paused'
-    : [`${speedLabel()}${s.dir < 0 ? ' · up' : ''}`, left, sleep].filter(Boolean).join(' · '));
-  pill.style.opacity = 1;
+  const info = (on && !text && pillInfo()) || {};
+  const sleep = [info.sleep, info.chapter && `${info.chapter.n}/${info.chapter.of}`].filter(Boolean).join(' · ');
+  pill.classList.toggle('on', on && !held);
+  pill.classList.toggle('held', on && held);
+  parts.label.textContent = text || (!on ? 'Stopped' : held ? 'Paused' : `${speedLabel()}${s.dir < 0 ? ' · up' : ''}`);
+  parts.left.textContent = info.left ? (info.estimating ? '~' : '') + info.left : '';
+  parts.left.hidden = !info.left;
+  parts.sleepText.textContent = sleep;
+  parts.sleep.hidden = !sleep;
+  parts.bar.hidden = info.progress == null;
+  parts.bar.style.setProperty('--p', Math.min(1, Math.max(0, info.progress ?? 0)));
+  pill.classList.remove('gone');
   clearTimeout(hideTimer);
-  if (!on) hideTimer = setTimeout(() => (pill.style.opacity = 0), linger);
+  if (!on) hideTimer = setTimeout(() => pill.classList.add('gone'), linger);
 }
 
 const same = (a, b) => a.length === 1 ? a.toLowerCase() === b.toLowerCase() : a === b;

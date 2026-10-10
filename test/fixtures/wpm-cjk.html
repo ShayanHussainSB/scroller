@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="zh"><meta charset="utf-8"><title>小说 第三章</title>
+<style>
+  body { margin: 0; background: #fbf8f1; color: #222; font: 18px/1.8 serif; }
+  article { width: 684px; margin: 0 auto; }
+  p { text-indent: 2em; }
+</style>
+<article id="text"><h1>第三章 信</h1></article>
+<script src="common.js"></script>
+<script>
+  // a cover image, then 40 paragraphs of 120 Han characters each, with full-width punctuation
+  const HAN = '月河夜静小心下上剑光影城长路她他们它是到从和但因为然后从不总慢明冷老信门窗故事';
+  let h = img(300, 450, 30, 'cover');
+  for (let i = 0; i < 40; i++) {
+    let t = '';
+    for (let j = 0; j < 120; j++) t += HAN[Math.floor(rnd() * HAN.length)] + (j % 20 === 19 ? '。' : '');
+    h += `<p>${t}</p>`;
+  }
+  document.getElementById('text').insertAdjacentHTML('beforeend', h);
+</script>
+<script src="../stub.js"></script>
+</html>

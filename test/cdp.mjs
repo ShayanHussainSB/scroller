@@ -17,7 +17,12 @@ const CHROME = process.env.CHROME || [
 
 export const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-export async function browser({ width = 1280, height = 800 } = {}) {
+// A test that fails before closing its browser must not leave Chrome running (it also kept runs from ending).
+const live = new Set();
+process.on('exit', () => { for (const p of live) p.kill('SIGKILL'); });
+
+// throttle: CPU slowdown for every page (TEST_THROTTLE=4 npm test, or npm run test:slow)
+export async function browser({ width = 1280, height = 800, throttle = +process.env.TEST_THROTTLE || 1 } = {}) {
   if (!CHROME) throw new Error('Chrome not found; set CHROME=/path/to/chrome');
   const profile = mkdtempSync(join(tmpdir(), 'scroller-test-'));
   const proc = spawn(CHROME, [
@@ -26,6 +31,8 @@ export async function browser({ width = 1280, height = 800 } = {}) {
     '--disable-background-timer-throttling', '--disable-renderer-backgrounding', '--disable-backgrounding-occluded-windows',
     'about:blank',
   ], { stdio: ['ignore', 'ignore', 'pipe'] });
+  live.add(proc);
+  proc.once('exit', () => live.delete(proc));
   const wsUrl = await new Promise((ok, fail) => {
     let err = '';
     proc.stderr.on('data', (d) => { err += d; const m = err.match(/ws:\/\/\S+/); if (m) ok(m[0]); });
@@ -54,6 +61,7 @@ export async function browser({ width = 1280, height = 800 } = {}) {
       const { sessionId } = await send('Target.attachToTarget', { targetId, flatten: true });
       const cmd = (m, p) => send(m, p, sessionId);
       await cmd('Emulation.setDeviceMetricsOverride', { width: w, height: h, deviceScaleFactor: 2, mobile: false });
+      if (throttle > 1) await cmd('Emulation.setCPUThrottlingRate', { rate: throttle });
       if (pre) { await cmd('Page.enable'); await cmd('Page.addScriptToEvaluateOnNewDocument', { source: pre }); }
       await cmd('Page.navigate', { url });
       const page = {
@@ -67,12 +75,17 @@ export async function browser({ width = 1280, height = 800 } = {}) {
           while (Date.now() < end) { if (await page.eval(expr).catch(() => false)) return; await sleep(50); }
           throw new Error(`timed out waiting for: ${expr}`);
         },
-        async key(key, type = 'press') {
-          const code = key.length === 1 ? key.toUpperCase().charCodeAt(0) : { Shift: 16, Escape: 27 }[key] || 0;
-          const base = { key, windowsVirtualKeyCode: code, text: key.length === 1 ? key : undefined };
-          if (type !== 'up') await cmd('Input.dispatchKeyEvent', { type: key.length === 1 ? 'keyDown' : 'rawKeyDown', ...base });
+        // modifiers: Alt 1, Ctrl 2, Meta 4, Shift 8 (added together)
+        async key(key, type = 'press', modifiers = 0) {
+          const CODES = { Shift: 16, Control: 17, Alt: 18, Meta: 91, Escape: 27, Tab: 9, Enter: 13, PageDown: 34,
+            End: 35, Home: 36, ArrowLeft: 37, ArrowUp: 38, ArrowRight: 39, ArrowDown: 40 };
+          const code = key.length === 1 ? key.toUpperCase().charCodeAt(0) : CODES[key] || 0;
+          const base = { key, code: key.length === 1 ? `Key${key.toUpperCase()}` : key, windowsVirtualKeyCode: code, modifiers,
+            text: key.length === 1 && !(modifiers & 6) ? key : undefined };
+          if (type !== 'up') await cmd('Input.dispatchKeyEvent', { type: base.text ? 'keyDown' : 'rawKeyDown', ...base });
           if (type !== 'down') await cmd('Input.dispatchKeyEvent', { type: 'keyUp', ...base });
         },
+        resize: (w, h) => cmd('Emulation.setDeviceMetricsOverride', { width: w, height: h, deviceScaleFactor: 2, mobile: false }),
         async wheel(dy, x = 640, y = 400) { await cmd('Input.dispatchMouseEvent', { type: 'mouseWheel', x, y, deltaX: 0, deltaY: dy }); },
         // simulate a slow machine (CI, old laptops): rate 4 = four times slower
         throttle: (rate) => cmd('Emulation.setCPUThrottlingRate', { rate }),
@@ -88,16 +101,25 @@ export async function browser({ width = 1280, height = 800 } = {}) {
         },
         // navigate this same tab, keeping sessionStorage (like a reader's next-chapter link)
         async go(fixture) { await cmd('Page.navigate', { url: pathToFileURL(join(here, 'fixtures', fixture)).href }); },
-        close: () => send('Target.closeTarget', { targetId }),
+        // fails the test if the page threw anything uncaught, unless that was the point
+        async close({ allowErrors = false } = {}) {
+          const errors = await page.eval('window.__errors || []').catch(() => []);
+          await send('Target.closeTarget', { targetId });
+          if (errors.length && !allowErrors) throw new Error(`uncaught errors on page: ${errors.join(' | ')}`);
+        },
       };
       await page.until(`document.readyState === "complete" && ${ready}`);
       return page;
   }
 
   return {
+    profile,
     // settings: storage values the page starts with (merged over DEFAULTS), e.g. { mode: 'pages' }
-    open: (fixture, settings = {}, size) =>
-      load(pathToFileURL(join(here, 'fixtures', fixture)).href + '#' + encodeURIComponent(JSON.stringify(settings)), size),
+    // fixture may carry a query string: 'chapters.html?v=rel' (pathToFileURL alone would encode the ?)
+    open: (fixture, settings = {}, size) => {
+      const [file, query] = fixture.split('?');
+      return load(pathToFileURL(join(here, 'fixtures', file)).href + (query ? '?' + query : '') + '#' + encodeURIComponent(JSON.stringify(settings)), size);
+    },
     // The real popup with a fake extension API. state: what the page answers (null = unreachable page).
     // In the popup, __set(o) changes storage, __state(o) changes what the page answers on the next ask.
     popup: (settings = {}, state = { running: false, host: 'example.com', vh: 800 }, size = {}) =>
@@ -119,6 +141,9 @@ export async function browser({ width = 1280, height = 800 } = {}) {
 
 // Runs inside the popup page before its scripts.
 function fakePopupApi(store, state) {
+  window.__errors = [];
+  addEventListener('error', (e) => window.__errors.push(e.message));
+  addEventListener('unhandledrejection', (e) => window.__errors.push(String(e.reason?.message || e.reason)));
   const changed = [];
   const clone = (v) => (v === undefined ? v : structuredClone(v));
   window.__sent = [];

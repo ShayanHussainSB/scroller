@@ -2,6 +2,9 @@
 // Starting settings come from the URL hash as JSON: page.html#{"mode":"pages"}, on top of what earlier
 // pages in the same tab saved.
 (() => {
+  window.__errors = []; // uncaught errors; the harness fails a test that leaves any
+  addEventListener('error', (e) => window.__errors.push(e.message));
+  addEventListener('unhandledrejection', (e) => window.__errors.push(String(e.reason?.message || e.reason)));
   // storage outlives page loads in the same tab, like the real thing (next-chapter tests rely on it)
   const store = JSON.parse(sessionStorage.getItem('stub:store') || '{}');
   try { Object.assign(store, JSON.parse(decodeURIComponent(location.hash.slice(1)) || '{}')); } catch {}

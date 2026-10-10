@@ -15,8 +15,9 @@
   },
   "scripts": {
     "check": "node scripts/check.mjs",
-    "test": "node --test 'test/*.test.mjs'",
+    "test": "node --test --test-force-exit 'test/*.test.mjs'",
     "build": "node scripts/build.mjs",
-    "release-notes": "node scripts/release-notes.mjs"
+    "release-notes": "node scripts/release-notes.mjs",
+    "test:slow": "TEST_THROTTLE=4 node --test --test-force-exit 'test/*.test.mjs'"
   }
 }

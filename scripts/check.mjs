@@ -3,7 +3,7 @@ import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { releaseNotes } from './release-notes.mjs';
 import { firefoxManifest } from './build.mjs';
-import { PAGES, ASSETS } from './site.mjs';
+import { PAGES, published } from './site.mjs';
 
 const ext = 'extension';
 const fail = [];
@@ -46,13 +46,14 @@ for (const f of js(ext)) {
 // the version being shipped is documented well enough to become release notes (summary + changes)
 try { releaseNotes(manifest.version); } catch (e) { fail.push(e.message); }
 
-// the website: every file it publishes exists, and every local file the page points at gets published
+// the website: every file it publishes exists, and every local file the page points at exists and gets published
 for (const f of PAGES) check(existsSync(`site/${f}`), `site/${f} is missing`);
 const page = existsSync('site/index.html') ? readFileSync('site/index.html', 'utf8') : '';
 check(/<meta name="version" content="\d+\.\d+\.\d+">/.test(page), 'site/index.html needs <meta name="version" content="x.y.z">');
-for (const [, f] of page.matchAll(/(?:src|href)="(?!https?:|#|mailto:|data:)([^"]+)"/g))
-  check(PAGES.includes(f) || f in ASSETS, `site/index.html links to ${f}, which npm run site doesn't publish`);
-for (const [f, from] of Object.entries(ASSETS)) check(existsSync(from), `site asset ${f} comes from missing ${from}`);
+for (const [, f] of page.matchAll(/(?:src|href)="(?!https?:|#|mailto:|data:)([^"]+)"/g)) {
+  check(existsSync(`site/${f}`), `site/index.html links to ${f}, which doesn't exist`);
+  check(published(f), `site/index.html links to ${f}, which npm run site doesn't publish`);
+}
 
 if (fail.length) { console.error('✗ ' + fail.join('\n✗ ')); process.exit(1); }
 console.log(`✓ Scroller ${manifest.version}: Chrome + Firefox manifests, ${refs.length} referenced files, scripts, changelog, release notes and website OK`);

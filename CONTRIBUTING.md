@@ -42,14 +42,14 @@ extension/               Everything the browser loads
 ├── fonts/               Bricolage Grotesque (SIL OFL 1.1)
 └── icons/
 site/                    The website (GitHub Pages): one page with inline CSS and JS, no build step
-├── index.html           The page, its demos and the original manga art they use
+├── index.html           The page, its demos and the original manga art they use (opens straight from the repo)
 ├── og.png               Social preview image (a capture of the page's first screen)
 ├── robots.txt, sitemap.xml, llms.txt   For search engines and AI assistants
 └── PRODUCT.md, DESIGN.md               Notes for whoever designs the site next (not published)
 scripts/                 Tooling (Node, no dependencies)
 ├── check.mjs            npm run check: validates manifests, files, syntax, changelog, the website's links
 ├── build.mjs            npm run build: packages dist/*-chrome.zip and *-firefox.zip
-├── site.mjs             npm run site: puts the website together in dist/site/ with the font, icons and screenshots
+├── site.mjs             npm run site: the published copy of the website in dist/site/, with its icons and screenshots
 └── release-notes.mjs    npm run release-notes: release notes from CHANGELOG.md
 test/                    Headless Chrome on fixture pages, no dependencies (how to run: test/README.md)
 ├── harness/             DevTools-protocol driver (cdp.mjs) and the fake chrome API for fixtures (stub.js)
@@ -84,14 +84,9 @@ docs/
 
 ## The website
 
-`site/index.html` is the whole site. It borrows the font, icons and popup screenshots from the rest of the repo instead of copying them, so preview it through the assembled folder:
+`site/index.html` is the whole site, and it works straight from the repo: open it in a browser or your editor's preview. The font is inlined, and the icons and popup screenshots are linked from `extension/icons/` and `docs/screenshots/` with `../` paths.
 
-```sh
-npm run site
-cd dist/site && python3 -m http.server   # then open http://localhost:8000
-```
-
-`npm run site` also swaps the version the page was written against (its `<meta name="version">`) for the one in the manifest, so download links always name the current release. After every **Release** run on `main`, the **Website** workflow publishes `dist/site/` to GitHub Pages; nothing else is needed when you ship a version. Keep the site's claims in step with the README.
+`npm run site` builds the published copy in `dist/site/`. It copies those images next to the page, rewrites the paths, and stamps the manifest version where the page names it. The download buttons don't rely on that stamp: they start on the latest-release page and, once the page loads, ask GitHub for the newest release's zips. After every **Release** run on `main`, the **Website** workflow publishes `dist/site/` to GitHub Pages, so shipping a version updates the site too. Keep the site's claims in step with the README.
 
 ## Releasing
 

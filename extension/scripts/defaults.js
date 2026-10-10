@@ -36,3 +36,13 @@ const PRESETS = [
   ['Fast', 500],
   ['Too damn fast', 3000],
 ];
+// Words per minute for text pages.
+const WPM_MIN = 50, WPM_MAX = 1500;
+const WPM_PRESETS = [
+  ['Savoring', 120],
+  ['Relaxed', 180],
+  ['Reading', 250],
+  ['Brisk', 350],
+  ['Fast', 500],
+  ['Skimming', 800],
+];

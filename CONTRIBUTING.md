@@ -14,7 +14,7 @@ Use the [bug report form](https://github.com/ShayanHussainSB/scroller/issues/new
 
 ## Development setup
 
-You need a Chromium browser and/or Firefox 140+, and Node.js 20+ for the checks and packaging. There are **no dependencies** to install.
+You need a Chromium browser and/or Firefox 140+, and Node.js 22+ for the checks, tests and packaging (`npm run build` also uses the `zip` command). There are **no dependencies** to install.
 
 ```sh
 git clone https://github.com/ShayanHussainSB/scroller.git
@@ -32,16 +32,34 @@ extension/               Everything the browser loads
 ├── manifest.json        MV3 manifest: the source of truth (Firefox's is derived from it)
 ├── scripts/
 │   ├── defaults.js      Settings, limits and presets shared by page and popup
-│   ├── content.js       The scroller that runs on each page
+│   ├── content.js       The core scroller on each page, its pill, and the hooks features plug into
+│   ├── night.js         Dimmer, warm tint and focus mode
+│   ├── pages.js         Pages style: snap to each page image
+│   ├── wpm.js           Words per minute: text detection and px-per-word measuring
+│   ├── session.js       Stop after (sleep timer, chapter limit) and time left in the chapter
 │   └── background.js    Toolbar icon badge
 ├── popup/               Settings popup (popup.html holds markup and styles)
 ├── fonts/               Bricolage Grotesque (SIL OFL 1.1)
 └── icons/
+site/                    The website (GitHub Pages): one page with inline CSS and JS, no build step
+├── index.html           The page, its demos and the original manga art they use (opens straight from the repo)
+├── og.png               Social preview image (a capture of the page's first screen)
+├── robots.txt, sitemap.xml, llms.txt   For search engines and AI assistants
+└── PRODUCT.md, DESIGN.md               Notes for whoever designs the site next (not published)
 scripts/                 Tooling (Node, no dependencies)
-├── check.mjs            npm run check: validates manifests, files, syntax, changelog
+├── check.mjs            npm run check: validates manifests, files, syntax, changelog, the website's links
 ├── build.mjs            npm run build: packages dist/*-chrome.zip and *-firefox.zip
+├── site.mjs             npm run site: the published copy of the website in dist/site/, with its icons and screenshots
 └── release-notes.mjs    npm run release-notes: release notes from CHANGELOG.md
-docs/screenshots/        Images used by the README and release notes
+test/                    Headless Chrome on fixture pages, no dependencies (how to run: test/README.md)
+├── harness/             DevTools-protocol driver (cdp.mjs) and the fake chrome API for fixtures (stub.js)
+├── suite/               npm test: one *.test.mjs per concern (core, controls, chapters, night, pages,
+│                        wpm, session, popup, integration, robust, harness)
+├── fixtures/            Webtoon, manga and novel pages, plus edge cases
+└── e2e/                 npm run test:e2e: the real extension in real Chrome (run by hand)
+docs/
+├── TESTING.md           Test layers, writing a test, the real-site checklist for releases
+└── screenshots/         Popup images for the README, release notes and website; site/ has captures of the website
 .github/                 CI workflows, Dependabot, issue and PR templates
 ```
 
@@ -49,6 +67,7 @@ docs/screenshots/        Images used by the README and release notes
 
 - **Keep it small and dependency-free.** Plain JavaScript, HTML and CSS that the browser loads directly; no bundler, no npm packages.
 - **Match the surrounding code**: its naming, comment density and formatting (`.editorconfig` covers the basics).
+- **Features plug into the core.** Content scripts share one scope and load in manifest order. A feature listens on `bus` (`start`, `stop`, `tick`, `settings`, `advance`) or wraps a hook from `content.js` (`speed`, `jump`, `canAdvance`, `pillInfo`, `pageState`…) and calls the previous one, so features stack instead of overwriting each other. A new content script goes in the manifest's `content_scripts` and in the list in `test/harness/stub.js` (`npm run check` fails if they differ).
 - **Both browsers.** Use APIs that exist in Chrome and Firefox (`chrome.*` works in both). Prefix-specific CSS needs its counterpart, in separate rules.
 - **Popup:** stays pure black, keeps red for "scrolling right now", and every tab must fit in 600px (Chrome's popup limit).
 - **Privacy:** no network requests, analytics or new permissions without a very good reason, called out in the PR.
@@ -57,11 +76,17 @@ docs/screenshots/        Images used by the README and release notes
 
 1. Branch from `main`.
 2. Write commits that each do one thing, with [Conventional Commit](https://www.conventionalcommits.org/) prefixes (`feat:`, `fix:`, `docs:`, `ci:`, `chore:`, `refactor:`).
-3. Run `npm run check`.
+3. Run `npm run check`, `npm test` and `npm run test:slow` (needs Chrome; set `CHROME=/path/to/chrome` if it isn't found). For changes to the content scripts, `npm run test:e2e` also loads the real extension. [test/README.md](test/README.md) covers running the tests; [docs/TESTING.md](docs/TESTING.md) explains the layers, how to write a test, and the real-site checklist for releases.
 4. Test on at least one real reader site, in each browser your change touches.
 5. Open the PR and fill in the template, with screenshots for anything visual.
 
 `main` is protected: changes land through pull requests, the **Check** workflow must pass, and review conversations must be resolved. PRs are merged with merge commits so individual commits stay in history.
+
+## The website
+
+`site/index.html` is the whole site, and it works straight from the repo: open it in a browser or your editor's preview. The font is inlined, and the icons and popup screenshots are linked from `extension/icons/` and `docs/screenshots/` with `../` paths.
+
+`npm run site` builds the published copy in `dist/site/`. It copies those images next to the page, rewrites the paths, and stamps the manifest version where the page names it. The download buttons don't rely on that stamp: they start on the latest-release page and, once the page loads, ask GitHub for the newest release's zips. After every **Release** run on `main`, the **Website** workflow publishes `dist/site/` to GitHub Pages, so shipping a version updates the site too. Keep the site's claims in step with the README.
 
 ## Releasing
 

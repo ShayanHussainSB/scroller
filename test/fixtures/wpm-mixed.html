@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><title>Webtoon with an author's note</title>
+<style>
+  body { margin: 0; background: #fff; font: 16px/1.6 system-ui; }
+  main { width: 720px; margin: 0 auto; }
+  main img { display: block; width: 720px; height: auto; }
+  .note { padding: 20px; background: #f6f6f6; }
+</style>
+<main id="strip"></main>
+<script src="common.js"></script>
+<script>
+  let h = `<div class="note"><p>${paragraph()}</p><p>${paragraph()}</p></div>`;
+  for (let i = 0; i < 8; i++) h += img(720, 1800, i * 40, `panel ${i + 1}`);
+  document.getElementById('strip').innerHTML = h;
+</script>
+<script src="../harness/stub.js"></script>
+</html>

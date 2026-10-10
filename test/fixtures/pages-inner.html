@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><title>Inner-scroll reader</title>
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #222; font: 16px system-ui; }
+  .top { position: fixed; top: 0; left: 0; right: 0; height: 40px; background: #000; color: #fff; }
+  #box { position: fixed; top: 40px; bottom: 0; left: 0; right: 0; overflow-y: auto; }
+  .bar { position: sticky; top: 0; height: 48px; background: #444; color: #fff; z-index: 1; }
+  canvas { display: block; width: 700px; height: 1000px; margin: 0 auto 16px; background: #ddd; }
+  .end { height: 300px; }
+</style>
+<div class="top">Site nav (outside the scroll box)</div>
+<div id="box">
+  <div class="bar">Reader toolbar</div>
+  <div id="pages"></div>
+  <div class="end"></div>
+</div>
+<script>document.getElementById('pages').innerHTML = '<canvas width="700" height="1000"></canvas>'.repeat(6);</script>
+<script src="../harness/stub.js"></script>
+</html>

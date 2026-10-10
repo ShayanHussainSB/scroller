@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><title>Lazy reader</title>
+<style>
+  body { margin: 0; background: #1a1a1a; }
+  img { display: block; margin: 0 auto 24px; }
+  footer { height: 400px; }
+</style>
+<div id="reader"></div>
+<footer></footer>
+<script src="common.js"></script>
+<script>
+  // first 3 pages loaded; the rest wait for the reader to get close (no src, no size yet)
+  let h = '';
+  for (let i = 0; i < 6; i++) h += i < 3 ? img(800, 1150, i * 30, `page ${i + 1}`) : `<img data-src="${art(800, 1150, i * 30, `page ${i + 1}`)}">`;
+  document.getElementById('reader').innerHTML = h;
+  window.loadAll = () => document.querySelectorAll('img[data-src]').forEach((el) => { el.width = 800; el.height = 1150; el.src = el.dataset.src; });
+</script>
+<script src="../harness/stub.js"></script>
+</html>

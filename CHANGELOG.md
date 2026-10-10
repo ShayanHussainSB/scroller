@@ -4,6 +4,30 @@ All notable changes to Scroller are listed here. The format follows [Keep a Chan
 
 Each version starts with a short summary; it becomes the opening paragraph of that version's GitHub release.
 
+## [1.3.0] - 2026-10-10
+
+Scroller for reading in bed. Novels scroll in words per minute, measured from the page itself. A new Night tab dims and warms the page and can spotlight the strip, then puts you to sleep with a timer or a chapter limit. Manga readers get a Pages style that snaps to each page, and the on-page pill now shows how long is left in the chapter.
+
+### Added
+- **Words per minute.** Text pages (novels, web fiction, articles) switch to wpm automatically. Scroller measures how many pixels a word takes in that page's own font, line height and column, so 250 wpm really reads at 250 words a minute. Chinese and Japanese count characters at a matched pace. Tap the unit next to the speed to switch between wpm and px/s on any site; `[` and `]` step wpm on text pages.
+- **Night tab**, with the night filter *Off*, *While scrolling* (fades in when you press start, out when you stop) or *Always*:
+  - **Dim** and **Warmth** sliders, previewed on the page while you drag them.
+  - **Focus**: darkens everything beside the reading column, so sidebars, ads and comments fade away.
+- **Stop after** a time (15 min to 1 hour) or a number of chapters, whichever comes first. It carries across next-chapter page loads, and the pill says good night when it's time. Picking a chapter limit turns on *Next chapter*.
+- **Pages style** (Feel tab): each jump lands with the next page's top at the top of the screen, just below the site's header. Banners and logos are skipped, and pages taller than the screen are read a step at a time first.
+- **Time left in the chapter**, on the pill and in the popup. It counts to the end of the chapter's art or text, not the comments below it, and shows `~` while the page is still loading in.
+- The pill shows the sleep timer, chapters read against the limit, and a hairline of chapter progress.
+
+### Changed
+- The popup has five tabs: Read, Night, Feel, Keys and Sites. Each still fits without scrolling.
+- The Sites tab shows each site in the unit it reads in, and forgetting a site clears its wpm too.
+
+### Fixed
+- Jumps at high speeds came up short when a new jump started before the last smooth scroll finished. Every jump now lands exactly where it should.
+- *Next chapter* skipped the real Next link on readers that give Prev and Next the same class (such as `next-prev`), and stopped instead of opening the chapter.
+- At full speed the glide eased down a hair and back up every frame, a slight flicker on slow machines.
+- The speed slider can land exactly on every preset; *Fast* and *Too damn fast* never lit up when dragged to.
+
 ## [1.2.1] - 2026-10-09
 
 A patch that brings Scroller 1.2 to Firefox. Each release now ships a package for Chrome and other Chromium browsers and one for Firefox 140+, both built from the same code, so Firefox gets every feature.
@@ -63,6 +87,7 @@ The first release: press one key and Scroller scrolls your manga, webtoon or lon
 ### Added
 - First release: one-key start/stop, 1–5000 px/s logarithmic speed with presets, glide or page-jump modes, up/down, stop or wait at the end, pause on manual scroll, on-page status pill, remappable faster/slower keys and a dark popup.
 
+[1.3.0]: https://github.com/ShayanHussainSB/scroller/compare/v1.2.1...v1.3.0
 [1.2.1]: https://github.com/ShayanHussainSB/scroller/compare/v1.2.0...v1.2.1
 [1.2.0]: https://github.com/ShayanHussainSB/scroller/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/ShayanHussainSB/scroller/compare/v1.0.0...v1.1.0

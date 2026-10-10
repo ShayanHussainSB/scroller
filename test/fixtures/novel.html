@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><title>Novel chapter</title>
+<style>
+  body { margin: 0; background: #fbf8f1; color: #222; font: 18px/1.7 Georgia, serif; }
+  header { height: 60px; background: #333; color: #fff; display: flex; align-items: center; padding: 0 20px; font-family: system-ui; }
+  .wrap { display: flex; gap: 40px; max-width: 1100px; margin: 0 auto; padding: 0 20px; }
+  article { width: 680px; }
+  aside { width: 260px; font: 14px/1.5 system-ui; }
+  aside a { display: block; padding: 6px 0; }
+  .chapter-nav { display: flex; justify-content: space-between; padding: 30px 0 300px; font-family: system-ui; }
+</style>
+<header>Web novel</header>
+<div class="wrap">
+  <article id="text"><h1>Chapter 3: The Letter</h1></article>
+  <aside><b>Related</b><a href="#">Volume one</a><a href="#">Characters</a><a href="#">Glossary</a><a href="#">Discord</a></aside>
+</div>
+<script src="common.js"></script>
+<script>
+  let h = '';
+  const n = +(new URLSearchParams(location.search).get('n') || 45); // ?n=3000 for a huge chapter
+  for (let i = 0; i < n; i++) h += `<p>${paragraph()}</p>`;
+  h += '<div class="chapter-nav"><a href="novel.html?ch=2">Previous chapter</a><a href="novel.html?ch=4">Next chapter</a></div>';
+  document.getElementById('text').insertAdjacentHTML('beforeend', h);
+</script>
+<script src="../harness/stub.js"></script>
+</html>

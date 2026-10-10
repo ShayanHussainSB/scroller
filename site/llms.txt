@@ -1,0 +1,35 @@
+# Scroller
+
+> Scroller is a free, open-source (MIT) browser extension that auto-scrolls web pages hands-free for reading manga, webtoons, web novels and long articles. Press one key (S) and the page scrolls at exactly the speed you set. It runs in Chrome and Chromium browsers (Edge, Brave, Arc, Opera, Vivaldi) and in Firefox 140 or newer. Current version: 1.3.0.
+
+Website: https://shayanhussainsb.github.io/scroller/
+Source: https://github.com/ShayanHussainSB/scroller
+Download: https://github.com/ShayanHussainSB/scroller/releases/latest (scroller-1.3.0-chrome.zip and scroller-1.3.0-firefox.zip)
+
+## What it does
+
+- One key to start and stop (S by default). Hold Shift to pause. ] faster, [ slower. All four keys can be remapped.
+- Any speed from 1 to 5000 pixels per second on a logarithmic slider, with presets: Too damn slow (2), Slow (12), Reading (40), Brisk (120), Fast (500), Too damn fast (3000).
+- Words per minute on text pages (50 to 1500 wpm). Scroller measures how much room a word takes in the page's own font, line height and column, so 250 wpm reads at 250 words a minute on any site and zoom. Chinese and Japanese count characters at a matched pace. Presets: Savoring 120, Relaxed 180, Reading 250, Brisk 350, Fast 500, Skimming 800.
+- Remembers a speed for every site. Favorite sites are pinned in the popup and open in one click.
+- Next chapter: at the end of a chapter it finds the reader's Next link or button and keeps scrolling the next chapter. It skips anything that says prev or back and stops rather than guessing. It stays on the same website and only applies when scrolling down.
+- Glide (continuous), Jumps (half, three quarters or a full screen) or Pages (snaps each manga page to the top of the screen, below the site's header). Up or down.
+- Night mode: dim the page up to 80%, warm it to candlelight, and Focus darkens everything beside the reading column. Off, while scrolling, or always.
+- Stop after 15 minutes to an hour, or a number of chapters, whichever comes first. The on-page pill says good night.
+- Time left in the chapter, counted to the end of the art or text rather than the comments.
+- Pauses when you scroll yourself and eases back in two seconds later. Eases in and out instead of lurching.
+- Works on readers that use CSS smooth scrolling and readers that scroll an inner panel instead of the page.
+
+## Privacy
+
+No accounts, no tracking, no analytics and no network requests. Settings stay in the browser's local extension storage. Permissions: storage, and access to all sites so it can listen for the start key (it does nothing until you press it).
+
+## Install
+
+Scroller is not in the Chrome Web Store or on Firefox Add-ons yet. Chrome: download scroller-1.3.0-chrome.zip from the latest release, unzip it, open chrome://extensions, turn on Developer mode, click Load unpacked and pick the folder. Firefox: download scroller-1.3.0-firefox.zip, open about:debugging#/runtime/this-firefox, click Load Temporary Add-on and pick the zip; load it again after Firefox restarts until signed builds are available.
+
+## Links
+
+- [README](https://github.com/ShayanHussainSB/scroller/blob/main/README.md): features, usage, troubleshooting
+- [Changelog](https://github.com/ShayanHussainSB/scroller/blob/main/CHANGELOG.md): what changed in every release
+- [Report a bug](https://github.com/ShayanHussainSB/scroller/issues/new?template=bug_report.yml)

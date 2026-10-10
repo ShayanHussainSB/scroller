@@ -109,6 +109,46 @@ try {
     assert.ok(tops.includes(y), `landed on a page top: ${y} in ${tops}`);
     await p.close();
   });
+  // the background script: the toolbar badge, read through the extension's own API
+  const extPage = async () => {
+    const { targetId } = await send('Target.createTarget', { url: `chrome-extension://${ext}/popup/popup.html` });
+    const { sessionId } = await send('Target.attachToTarget', { targetId, flatten: true });
+    await sleep(500);
+    const ev = async (expression) => (await send('Runtime.evaluate', { expression, awaitPromise: true, returnByValue: true }, sessionId)).result.value;
+    return { ev, close: () => send('Target.closeTarget', { targetId }) };
+  };
+
+  await check('toolbar badge says ON while scrolling and clears on stop', async () => {
+    const p = await page('/webtoon.html');
+    const x = await extPage();
+    // Scroller has no "tabs" permission, so tabs can't be found by URL: read every tab's badge instead
+    const badge = () => x.ev(`chrome.tabs.query({}).then((ts) => Promise.all(ts.map((t) => chrome.action.getBadgeText({ tabId: t.id })))).then((b) => b.includes('ON') ? 'ON' : '')`);
+    await x.ev(`chrome.storage.local.set({ mode: 'smooth', pxs: 40 })`);
+    await p.key('s');
+    await sleep(500);
+    assert.equal(await badge(), 'ON');
+    await p.key('s');
+    await sleep(500);
+    assert.equal(await badge(), '');
+    await x.close(); await p.close();
+  });
+
+  await check('next chapter in the real extension: new page loads, Night is on, it keeps scrolling', async () => {
+    const x = await extPage();
+    await x.ev(`chrome.storage.local.set({ atEnd: 'next', pxs: 3000, mode: 'smooth', night: true, nightWhen: 'scrolling', dim: 0.4 })`);
+    await x.close();
+    const p = await page('/webtoon.html');
+    await p.ev('scrollTo(0, document.body.scrollHeight)');
+    await p.key('s');
+    for (let i = 0; i < 100 && !(await p.ev('location.search').catch(() => '')).includes('ch=2'); i++) await sleep(100);
+    await sleep(1500); // the content scripts load at idle, then resume after 800ms
+    assert.equal(await p.ev('location.search'), '?ch=2');
+    assert.equal(await p.ev('!!document.querySelector("scroller-night")'), true);
+    const y = await p.ev('scrollY');
+    await sleep(500);
+    assert.ok(await p.ev('scrollY') > y, 'kept scrolling');
+    await p.close();
+  });
   console.log(`\n${ok} passed`);
 } catch (e) {
   console.error('✖', e.message);

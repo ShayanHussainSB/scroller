@@ -49,7 +49,9 @@ test/                    npm test: headless Chrome on fixture pages, no dependen
 ├── cdp.mjs              Tiny DevTools-protocol driver (pages and the popup)
 ├── stub.js              Fake chrome API that loads the content scripts into fixtures
 ├── fixtures/            Webtoon, manga and novel pages, plus edge cases
-└── extension.e2e.mjs    The real extension in real Chrome (run by hand)
+├── extension.e2e.mjs    The real extension in real Chrome (run by hand)
+└── *.test.mjs           One file per concern: core, controls, chapters, night, pages, wpm, session,
+                         popup, integration (popup ↔ page, upgrades, features together), robust, harness
 docs/screenshots/        Images used by the README and release notes
 .github/                 CI workflows, Dependabot, issue and PR templates
 ```
@@ -67,7 +69,7 @@ docs/screenshots/        Images used by the README and release notes
 
 1. Branch from `main`.
 2. Write commits that each do one thing, with [Conventional Commit](https://www.conventionalcommits.org/) prefixes (`feat:`, `fix:`, `docs:`, `ci:`, `chore:`, `refactor:`).
-3. Run `npm run check` and `npm test` (needs Chrome; set `CHROME=/path/to/chrome` if it isn't found). For changes to the content scripts, `node test/extension.e2e.mjs` also loads the real extension.
+3. Run `npm run check`, `npm test` and `npm run test:slow` (needs Chrome; set `CHROME=/path/to/chrome` if it isn't found). For changes to the content scripts, `node test/extension.e2e.mjs` also loads the real extension. [docs/TESTING.md](docs/TESTING.md) explains the layers, how to write a test, and the real-site checklist for releases.
 4. Test on at least one real reader site, in each browser your change touches.
 5. Open the PR and fill in the template, with screenshots for anything visual.
 

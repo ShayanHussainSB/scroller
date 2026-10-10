@@ -189,6 +189,7 @@ function badge(text, linger = 1200) {
       .dot{width:6px;height:6px;border-radius:50%;background:#737373;flex:none}
       .on .dot{background:#ff4f5a;animation:pulse 1.6s ease-in-out infinite}
       .held .dot{background:#a3a3a3}
+      .bye .dot,.bm{display:none}.bye .bm{display:block;color:#f5f5f5}
       @keyframes pulse{50%{opacity:.35}}
       .seg{display:flex;align-items:center;gap:5px;white-space:nowrap}
       .seg+.seg::before{content:"";width:1px;height:11px;margin-right:4px;background:#ffffff2e}
@@ -199,7 +200,7 @@ function badge(text, linger = 1200) {
       .bar i{display:block;height:100%;width:calc(var(--p,0)*100%);border-radius:inherit;background:#f5f5f5a6;
         transition:width .6s linear}
       @media (prefers-reduced-motion:reduce){.p,.bar i{transition:none}.on .dot{animation:none}}
-    </style><div class="p gone"><i class="dot"></i><span class="seg"></span><span class="seg dim"></span>`
+    </style><div class="p gone"><i class="dot"></i>${MOON.replace('<svg', '<svg class="bm"')}<span class="seg"></span><span class="seg dim"></span>`
       + `<span class="seg dim">${MOON}<span></span></span><span class="bar"><i></i></span></div>`;
     pill = root.querySelector('.p');
     const [label, left, sleep] = root.querySelectorAll('.seg');
@@ -210,6 +211,7 @@ function badge(text, linger = 1200) {
   const sleep = [info.sleep, info.chapter && `${info.chapter.n}/${info.chapter.of}`].filter(Boolean).join(' · ');
   pill.classList.toggle('on', on && !held);
   pill.classList.toggle('held', on && held);
+  pill.classList.toggle('bye', !on && linger > 1200); // a farewell (sleep timer, chapter limit) gets the moon
   parts.label.textContent = text || (!on ? 'Stopped' : held ? 'Paused' : `${speedLabel()}${s.dir < 0 ? ' · up' : ''}`);
   parts.left.textContent = info.left ? (info.estimating ? '~' : '') + info.left : '';
   parts.left.hidden = !info.left;

@@ -12,7 +12,8 @@ const clamp = (n) => Math.round(Math.min(U().max, Math.max(U().min, n)));
 
 // Slider is logarithmic so both ends get room (1 to 5000 px/s, 50 to 1500 wpm).
 const toSlider = (v) => Math.round((1000 * Math.log(v / U().min)) / Math.log(U().max / U().min));
-const fromSlider = (v) => clamp(U().min * Math.pow(U().max / U().min, v / 1000));
+// A slider step is ~0.8% wide, too coarse to hit 500 or 3000 exactly, so a preset's own position snaps to it.
+const fromSlider = (v) => U().presets.find(([, x]) => toSlider(x) === v)?.[1] ?? clamp(U().min * Math.pow(U().max / U().min, v / 1000));
 
 const keyLabel = (k) => ({ ' ': 'Space', Control: 'Ctrl', Meta: 'Cmd', ArrowUp: '↑', ArrowDown: '↓', ArrowLeft: '←', ArrowRight: '→' })[k]
   || (k.length === 1 ? k.toUpperCase() : k);

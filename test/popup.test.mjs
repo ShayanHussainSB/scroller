@@ -151,3 +151,110 @@ test('every line of copy fits on one line where it should', async () => {
   }
   await p.close();
 });
+
+test('an unreachable page shows the reload banner, and Reload reloads', async () => {
+  const p = await b.popup({}, null);
+  assert.equal(await p.eval('$("#offline").hidden'), false);
+  assert.equal(await p.eval('$("#run").disabled'), true);
+  await p.click('#reload');
+  assert.ok((await p.eval('__sent')).includes('reload'));
+  await p.close();
+});
+
+test('Start and Stop toggle the page and the header', async () => {
+  const p = await b.popup({}, art);
+  await p.click('#run');
+  await p.until('document.body.classList.contains("running")');
+  assert.equal(await val(p, '#run-label'), 'Stop');
+  await p.click('#run');
+  await p.until('!document.body.classList.contains("running")');
+  assert.equal(await val(p, '#run-label'), 'Start');
+  await p.close();
+});
+
+test('remap a key: press it, Esc cancels, clashes are refused, Restore has undo', async () => {
+  const p = await b.popup({}, art);
+  await p.click('.key[data-k=key]');
+  await p.key('k');
+  await p.until('__store.key === "k"');
+  assert.match(await val(p, '#hint'), /Locked in: K is start\/stop/);
+  await p.click('.key[data-k=key]');
+  await p.key('Escape');
+  assert.match(await val(p, '#hint'), /Never mind/);
+  await p.click('.key[data-k=key]');
+  await p.key(']');
+  assert.match(await val(p, '#hint'), /\] is already faster/);
+  assert.equal(await p.eval('__store.key'), 'k');
+  await p.click('#reset-keys');
+  await p.until('__store.key === "s"');
+  await p.click('#undo');
+  await p.until('__store.key === "k"');
+  await p.close();
+});
+
+test('only the hold key may be a modifier', async () => {
+  const p = await b.popup({}, art);
+  await p.click('.key[data-k=key]');
+  await p.key('Shift');
+  assert.equal(await p.eval('!!listening'), true, 'still waiting for a real key');
+  await p.key('Escape');
+  await p.click('.key[data-k=holdKey]');
+  await p.key('Alt');
+  await p.until('__store.holdKey === "Alt"');
+  await p.close();
+});
+
+test('tabs follow the keyboard: arrows, Home, End', async () => {
+  const p = await b.popup({}, art);
+  await p.eval('$("#t-read").focus()');
+  const sel = () => p.eval('document.querySelector("[role=tab][aria-selected=true]").id');
+  await p.key('ArrowRight'); assert.equal(await sel(), 't-night');
+  await p.key('End'); assert.equal(await sel(), 't-sites');
+  await p.key('ArrowRight'); assert.equal(await sel(), 't-read');
+  await p.key('ArrowLeft'); assert.equal(await sel(), 't-sites');
+  await p.key('Home'); assert.equal(await sel(), 't-read');
+  assert.equal(await p.eval('document.activeElement.id'), 't-read');
+  await p.close();
+});
+
+test('the slider maps every preset exactly, in both units', async () => {
+  for (const state of [art, text]) {
+    const p = await b.popup({}, state);
+    const bad = await p.eval(`U().presets.filter(([, v]) => fromSlider(toSlider(v)) !== v)`);
+    assert.deepEqual(bad, [], `${state.kind}: ${JSON.stringify(bad)}`);
+    await p.close();
+  }
+});
+
+test('live updates while scrolling keep keyboard focus where it is', async () => {
+  const p = await b.popup({ sites: { 'a.test': 10, 'b.test': 20 } }, { ...art, running: true, leftSec: 100 });
+  await p.click('#t-sites');
+  await p.eval(`document.querySelector('[data-forget="b.test"]').focus()`);
+  await sleep(2300); // two live refreshes
+  assert.equal(await p.eval('document.activeElement.dataset.forget'), 'b.test');
+  await p.close();
+});
+
+test('every control has an accessible name', async () => {
+  const p = await b.popup({ sites: { 'a.test': 10 } }, text);
+  for (const t of ['read', 'night', 'feel', 'keys', 'sites']) {
+    await p.click('#t-' + t);
+    const unnamed = await p.eval(`[...document.querySelectorAll('button, input')].filter((el) => el.getClientRects().length).filter((el) => {
+      const by = el.getAttribute('aria-labelledby');
+      const name = el.getAttribute('aria-label') || (by && document.getElementById(by)?.textContent) || el.labels?.[0]?.textContent || el.textContent;
+      return !name?.trim();
+    }).map((el) => el.outerHTML.slice(0, 80))`);
+    assert.deepEqual(unnamed, [], t);
+  }
+  await p.close();
+});
+
+test('the site chip stars and unstars the current site, with undo', async () => {
+  const p = await b.popup({}, art);
+  await p.click('#site');
+  await p.until('__store.favs?.includes("manga.test")');
+  assert.equal(await p.eval('$("#site").getAttribute("aria-pressed")'), 'true');
+  await p.click('#undo');
+  await p.until('!__store.favs.includes("manga.test")');
+  await p.close();
+});

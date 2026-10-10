@@ -39,7 +39,7 @@
 
 - **A popup that stays out of the way.** Pure black for night reading, five tabs (Read, Night, Feel, Keys, Sites) that each fit without scrolling, and red reserved for one thing: scrolling right now.
 - **One key to start and stop.** Defaults to `S`; change it to any key you like.
-- **Any speed, 1 to 5000 px/s.** A logarithmic slider gives the slow end as much room as the fast end. Type an exact number, or pick a preset from *Too damn slow* to *Too damn fast*.
+- **Any speed, 1 to 5000 px/s** (50 to 1500 wpm on text pages). A logarithmic slider gives the slow end as much room as the fast end. Type an exact number, or pick a preset from *Too damn slow* to *Too damn fast*.
 - **Words per minute for novels.** On text pages the speed switches to wpm by itself. Scroller measures how much room a word takes in that page's font, line height and column, so 250 wpm reads at 250 words a minute on any site, at any zoom. Chinese and Japanese count characters at a matched pace. Tap the unit to switch a site between wpm and px/s.
 - **Remembers speed per site.** Every reader sizes its pages differently, so each site keeps its own speed. New sites start from the last speed you used. The **Sites** tab lists every site's speed; forget any of them (with undo).
 - **Favorite sites.** Star the readers you love, from the site chip in the popup or the Sites tab. Favorites are pinned to the top and open in one click. Nothing is starred until you star it.
@@ -111,7 +111,7 @@ Keys are ignored while you're typing in a text box. Start, faster and slower nev
 | **Wait** | Keeps going if more pages load in. Good for infinite-scroll readers. |
 | **Next chapter** | Finds the reader's next-chapter link or button, opens it, and keeps scrolling. |
 
-**How Next chapter finds the button.** It scores every visible link and button on its text, label, class names and `rel="next"`. Wording like "chapter" and arrow icons count in its favor. Anything that says *prev*, *back* or *comments* is skipped. If it can't find one, or clicking it doesn't move the page on, Scroller stops rather than looping. It works with readers that load a new page and with readers that swap chapters in place. Two limits: auto-resume can't cross to a different website, and it only applies when scrolling down.
+**How Next chapter finds the button.** It scores every visible link and button on its text, label, class names and `rel="next"`. Wording like "chapter" and arrow icons count in its favor; links about comments or posts count against. The link's own words and arrow decide its direction first, so anything that says *prev* or *back* is skipped, even when the site gives Prev and Next the same class. If it can't find one, can't tell which of two arrows goes forward, or clicking it doesn't move the page on, Scroller stops rather than going back or looping. It works with readers that load a new page and with readers that swap chapters in place. Two limits: auto-resume can't cross to a different website, and it only applies when scrolling down.
 
 ### Night
 
@@ -159,7 +159,7 @@ No accounts, no tracking, no analytics, no network requests. Settings, including
 
 ## Contributing
 
-Bug reports, sites where *Next chapter* misses, and pull requests are all welcome. [CONTRIBUTING.md](CONTRIBUTING.md) covers development setup for both browsers, the project layout, guidelines and how releases work. Please follow the [Code of Conduct](CODE_OF_CONDUCT.md), and report security issues privately as described in [SECURITY.md](SECURITY.md). [CHANGELOG.md](CHANGELOG.md) lists what changed in every release.
+Bug reports, sites where *Next chapter* misses, and pull requests are all welcome. [CONTRIBUTING.md](CONTRIBUTING.md) covers development setup for both browsers, the project layout, guidelines and how releases work. To run the tests yourself, see [test/README.md](test/README.md). Please follow the [Code of Conduct](CODE_OF_CONDUCT.md), and report security issues privately as described in [SECURITY.md](SECURITY.md). [CHANGELOG.md](CHANGELOG.md) lists what changed in every release.
 
 ## License
 

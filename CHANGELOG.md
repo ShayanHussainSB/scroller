@@ -24,6 +24,9 @@ Scroller for reading in bed. Novels scroll in words per minute, measured from th
 
 ### Fixed
 - Jumps at high speeds came up short when a new jump started before the last smooth scroll finished. Every jump now lands exactly where it should.
+- *Next chapter* skipped the real Next link on readers that give Prev and Next the same class (such as `next-prev`), and stopped instead of opening the chapter.
+- At full speed the glide eased down a hair and back up every frame, a slight flicker on slow machines.
+- The speed slider can land exactly on every preset; *Fast* and *Too damn fast* never lit up when dragged to.
 
 ## [1.2.1] - 2026-10-09
 

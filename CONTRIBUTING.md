@@ -14,7 +14,7 @@ Use the [bug report form](https://github.com/ShayanHussainSB/scroller/issues/new
 
 ## Development setup
 
-You need a Chromium browser and/or Firefox 140+, and Node.js 20+ for the checks and packaging. There are **no dependencies** to install.
+You need a Chromium browser and/or Firefox 140+, and Node.js 22+ for the checks, tests and packaging (`npm run build` also uses the `zip` command). There are **no dependencies** to install.
 
 ```sh
 git clone https://github.com/ShayanHussainSB/scroller.git
@@ -45,14 +45,15 @@ scripts/                 Tooling (Node, no dependencies)
 ├── check.mjs            npm run check: validates manifests, files, syntax, changelog
 ├── build.mjs            npm run build: packages dist/*-chrome.zip and *-firefox.zip
 └── release-notes.mjs    npm run release-notes: release notes from CHANGELOG.md
-test/                    npm test: headless Chrome on fixture pages, no dependencies
-├── cdp.mjs              Tiny DevTools-protocol driver (pages and the popup)
-├── stub.js              Fake chrome API that loads the content scripts into fixtures
+test/                    Headless Chrome on fixture pages, no dependencies (how to run: test/README.md)
+├── harness/             DevTools-protocol driver (cdp.mjs) and the fake chrome API for fixtures (stub.js)
+├── suite/               npm test: one *.test.mjs per concern (core, controls, chapters, night, pages,
+│                        wpm, session, popup, integration, robust, harness)
 ├── fixtures/            Webtoon, manga and novel pages, plus edge cases
-├── extension.e2e.mjs    The real extension in real Chrome (run by hand)
-└── *.test.mjs           One file per concern: core, controls, chapters, night, pages, wpm, session,
-                         popup, integration (popup ↔ page, upgrades, features together), robust, harness
-docs/screenshots/        Images used by the README and release notes
+└── e2e/                 npm run test:e2e: the real extension in real Chrome (run by hand)
+docs/
+├── TESTING.md           Test layers, writing a test, the real-site checklist for releases
+└── screenshots/         Images used by the README and release notes
 .github/                 CI workflows, Dependabot, issue and PR templates
 ```
 
@@ -60,7 +61,7 @@ docs/screenshots/        Images used by the README and release notes
 
 - **Keep it small and dependency-free.** Plain JavaScript, HTML and CSS that the browser loads directly; no bundler, no npm packages.
 - **Match the surrounding code**: its naming, comment density and formatting (`.editorconfig` covers the basics).
-- **Features plug into the core.** Content scripts share one scope and load in manifest order. A feature listens on `bus` (`start`, `stop`, `tick`, `settings`, `advance`) or wraps a hook from `content.js` (`speed`, `jump`, `canAdvance`, `pillInfo`, `pageState`…) and calls the previous one, so features stack instead of overwriting each other.
+- **Features plug into the core.** Content scripts share one scope and load in manifest order. A feature listens on `bus` (`start`, `stop`, `tick`, `settings`, `advance`) or wraps a hook from `content.js` (`speed`, `jump`, `canAdvance`, `pillInfo`, `pageState`…) and calls the previous one, so features stack instead of overwriting each other. A new content script goes in the manifest's `content_scripts` and in the list in `test/harness/stub.js` (`npm run check` fails if they differ).
 - **Both browsers.** Use APIs that exist in Chrome and Firefox (`chrome.*` works in both). Prefix-specific CSS needs its counterpart, in separate rules.
 - **Popup:** stays pure black, keeps red for "scrolling right now", and every tab must fit in 600px (Chrome's popup limit).
 - **Privacy:** no network requests, analytics or new permissions without a very good reason, called out in the PR.
@@ -69,7 +70,7 @@ docs/screenshots/        Images used by the README and release notes
 
 1. Branch from `main`.
 2. Write commits that each do one thing, with [Conventional Commit](https://www.conventionalcommits.org/) prefixes (`feat:`, `fix:`, `docs:`, `ci:`, `chore:`, `refactor:`).
-3. Run `npm run check`, `npm test` and `npm run test:slow` (needs Chrome; set `CHROME=/path/to/chrome` if it isn't found). For changes to the content scripts, `node test/extension.e2e.mjs` also loads the real extension. [docs/TESTING.md](docs/TESTING.md) explains the layers, how to write a test, and the real-site checklist for releases.
+3. Run `npm run check`, `npm test` and `npm run test:slow` (needs Chrome; set `CHROME=/path/to/chrome` if it isn't found). For changes to the content scripts, `npm run test:e2e` also loads the real extension. [test/README.md](test/README.md) covers running the tests; [docs/TESTING.md](docs/TESTING.md) explains the layers, how to write a test, and the real-site checklist for releases.
 4. Test on at least one real reader site, in each browser your change touches.
 5. Open the PR and fill in the template, with screenshots for anything visual.
 

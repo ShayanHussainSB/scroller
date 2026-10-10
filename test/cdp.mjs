@@ -80,6 +80,10 @@ export async function browser({ width = 1280, height = 800 } = {}) {
           const { data } = await cmd('Page.captureScreenshot', { format: 'png', clip, captureBeyondViewport: !!full });
           writeFileSync(path, Buffer.from(data, 'base64'));
         },
+        async shotClip(path, clip) {
+          const { data } = await cmd('Page.captureScreenshot', { format: 'png', clip: { ...clip, scale: 1 } });
+          writeFileSync(path, Buffer.from(data, 'base64'));
+        },
         // navigate this same tab, keeping sessionStorage (like a reader's next-chapter link)
         async go(fixture) { await cmd('Page.navigate', { url: pathToFileURL(join(here, 'fixtures', fixture)).href }); },
         close: () => send('Target.closeTarget', { targetId }),

@@ -99,6 +99,6 @@ const prevPillInfo = pillInfo;
 pillInfo = () => ({ ...prevPillInfo(), ...sessionInfo() });
 const prevSessionState = pageState;
 pageState = () => {
-  const { sleepSec, leftSec, progress } = sessionInfo();
-  return { ...prevSessionState(), session, sleepSec, leftSec, progress };
+  const { sleepSec, leftSec, progress, estimating } = sessionInfo();
+  return { ...prevSessionState(), session, sleepSec, leftSec, progress, estimating };
 };

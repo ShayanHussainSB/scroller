@@ -1,7 +1,7 @@
-// Session: sleep timer, chapter limit, time left in the chapter. Run with `node --test test/session.test.mjs`.
+// Session: sleep timer, chapter limit, time left in the chapter. Run with `node --test test/suite/session.test.mjs`.
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { browser, sleep } from './cdp.mjs';
+import { browser, sleep } from '../harness/cdp.mjs';
 
 let b;
 before(async () => { b = await browser(); });

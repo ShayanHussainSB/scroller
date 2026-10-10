@@ -1,5 +1,5 @@
-// End-to-end: the real, packaged extension in real Chrome, on the fixture pages served over http.
-//   node test/extension.e2e.mjs        (not part of npm test: it needs a desktop Chrome build)
+// End-to-end: the real, unpacked extension in real Chrome, on the fixture pages served over http.
+//   npm run test:e2e   (not part of npm test: it needs a desktop Chrome build)
 // Branded Chrome ignores --load-extension, so the extension is loaded through the DevTools pipe instead.
 import { spawn } from 'node:child_process';
 import { createServer } from 'node:http';
@@ -15,10 +15,10 @@ const CHROME = process.env.CHROME || ['/Applications/Google Chrome.app/Contents/
 
 // fixtures without the test stub: the real extension injects the content scripts
 const server = createServer((req, res) => {
-  const file = join(here, 'fixtures', new URL(req.url, 'http://x').pathname);
-  if (!file.startsWith(join(here, 'fixtures')) || !existsSync(file)) return res.writeHead(404).end();
+  const file = join(here, '..', 'fixtures', new URL(req.url, 'http://x').pathname);
+  if (!file.startsWith(join(here, '..', 'fixtures')) || !existsSync(file)) return res.writeHead(404).end();
   let body = readFileSync(file, 'utf8');
-  if (file.endsWith('.html')) body = body.replace('<script src="../stub.js"></script>', '');
+  if (file.endsWith('.html')) body = body.replace('<script src="../harness/stub.js"></script>', '');
   res.writeHead(200, { 'content-type': file.endsWith('.js') ? 'text/javascript' : 'text/html' }).end(body);
 }).listen(0);
 const origin = `http://localhost:${server.address().port}`;
@@ -63,7 +63,7 @@ const pill = `(() => { for (const el of document.documentElement.children) { con
 let ok = 0;
 const check = async (name, fn) => { await fn(); ok++; console.log('✔', name); };
 try {
-  const { id: ext } = await send('Extensions.loadUnpacked', { path: resolve(here, '..', 'extension') });
+  const { id: ext } = await send('Extensions.loadUnpacked', { path: resolve(here, '..', '..', 'extension') });
   console.log('loaded extension', ext);
 
   await check('webtoon: S starts, glides, shows the pill with time left, Night dims; S stops', async () => {

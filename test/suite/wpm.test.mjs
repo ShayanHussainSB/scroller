@@ -1,7 +1,7 @@
-// Words per minute: page kind, px per word from the layout, wpm → px/s, nudges. `node --test test/wpm.test.mjs`
+// Words per minute: page kind, px per word from the layout, wpm → px/s, nudges. `node --test test/suite/wpm.test.mjs`
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { browser, sleep } from './cdp.mjs';
+import { browser, sleep } from '../harness/cdp.mjs';
 
 let b;
 before(async () => { b = await browser(); });

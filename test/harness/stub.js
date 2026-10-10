@@ -36,7 +36,7 @@
   window.__set = (o) => new Promise((r) => chrome.storage.local.set(o, () => setTimeout(r, 0)));
   // what the popup gets back from a message ('state' or 'toggle')
   window.__send = (msg) => new Promise((r) => { for (const f of messages) f(msg, {}, r); });
-  const ext = new URL('../extension/scripts/', document.currentScript.src);
+  const ext = new URL('../../extension/scripts/', document.currentScript.src);
   // keep in sync with content_scripts in extension/manifest.json (npm run check verifies)
   for (const f of ['defaults.js', 'content.js', 'night.js', 'pages.js', 'wpm.js', 'session.js'])
     document.write(`<script src="${ext}${f}"><\/script>`);

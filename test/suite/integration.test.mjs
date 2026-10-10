@@ -1,7 +1,7 @@
 // Features meeting each other: the popup and the page, old settings, and feature scripts stacked together.
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { browser, sleep } from './cdp.mjs';
+import { browser, sleep } from '../harness/cdp.mjs';
 
 let b;
 before(async () => { b = await browser(); });

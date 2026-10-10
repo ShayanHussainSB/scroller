@@ -1,8 +1,8 @@
-// Night: dimmer, warm tint, focus mode. Run with `node --test test/night.test.mjs`.
+// Night: dimmer, warm tint, focus mode. Run with `node --test test/suite/night.test.mjs`.
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { tmpdir } from 'node:os';
-import { browser, sleep } from './cdp.mjs';
+import { browser, sleep } from '../harness/cdp.mjs';
 
 let b;
 before(async () => { b = await browser(); });

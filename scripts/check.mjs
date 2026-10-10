@@ -29,10 +29,10 @@ check(!ff.background.service_worker, 'Firefox manifest must not use background.s
 check(ff.browser_specific_settings?.gecko?.id, 'Firefox manifest needs browser_specific_settings.gecko.id');
 
 // the test harness loads the same content scripts, in the same order
-const stub = readFileSync('test/stub.js', 'utf8').match(/for \(const f of (\[[^\]]*\])/)?.[1];
+const stub = readFileSync('test/harness/stub.js', 'utf8').match(/for \(const f of (\[[^\]]*\])/)?.[1];
 const content = manifest.content_scripts[0].js.map((f) => f.replace('scripts/', ''));
 check(stub && JSON.stringify(JSON.parse(stub.replace(/'/g, '"'))) === JSON.stringify(content),
-  'test/stub.js script list must match manifest content_scripts');
+  'test/harness/stub.js script list must match manifest content_scripts');
 
 // every script parses
 const js = (dir) => readdirSync(dir, { withFileTypes: true })

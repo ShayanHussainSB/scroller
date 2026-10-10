@@ -1,7 +1,7 @@
 // Tiny headless-Chrome driver over the DevTools protocol. No dependencies: Node 22+ has WebSocket.
 //   const b = await browser(); const p = await b.open('novel.html', { dim: 0.5 });
 //   await p.eval('speed()'); await p.key('s'); await p.shot('out.png'); await b.close();
-// Fixture pages load the extension's content scripts with a fake `chrome` API (test/stub.js),
+// Fixture pages load the extension's content scripts with a fake `chrome` API (test/harness/stub.js),
 // so every global in the content scripts is reachable from p.eval().
 import { spawn } from 'node:child_process';
 import { mkdtempSync, rmSync, writeFileSync, existsSync } from 'node:fs';
@@ -121,12 +121,12 @@ export async function browser({ width = 1280, height = 800, throttle = +process.
     // fixture may carry a query string: 'chapters.html?v=rel' (pathToFileURL alone would encode the ?)
     open: (fixture, settings = {}, size) => {
       const [file, query] = fixture.split('?');
-      return load(pathToFileURL(join(here, 'fixtures', file)).href + (query ? '?' + query : '') + '#' + encodeURIComponent(JSON.stringify(settings)), size);
+      return load(pathToFileURL(join(here, '..', 'fixtures', file)).href + (query ? '?' + query : '') + '#' + encodeURIComponent(JSON.stringify(settings)), size);
     },
     // The real popup with a fake extension API. state: what the page answers (null = unreachable page).
     // In the popup, __set(o) changes storage, __state(o) changes what the page answers on the next ask.
     popup: (settings = {}, state = { running: false, host: 'example.com', vh: 800 }, size = {}) =>
-      load(pathToFileURL(join(here, '..', 'extension', 'popup', 'popup.html')).href, {
+      load(pathToFileURL(join(here, '..', '..', 'extension', 'popup', 'popup.html')).href, {
         width: 320, height: 600, ...size, ready: 'document.body.classList.contains("ready")',
         pre: `(${fakePopupApi})(${JSON.stringify(settings)}, ${JSON.stringify(state)})`,
       }),

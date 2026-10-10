@@ -1,7 +1,7 @@
 // Everyday controls from 1.0–1.2: keys, hold to pause, faster/slower, manual scrolling, easing, direction.
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { browser, sleep } from './cdp.mjs';
+import { browser, sleep } from '../harness/cdp.mjs';
 
 let b;
 before(async () => { b = await browser(); });

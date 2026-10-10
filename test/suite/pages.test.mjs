@@ -1,7 +1,7 @@
 // Snap to pages (mode 'pages'): jumps land on page tops, below sticky headers, stepping through tall pages.
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { browser, sleep } from './cdp.mjs';
+import { browser, sleep } from '../harness/cdp.mjs';
 
 let b;
 before(async () => { b = await browser(); });

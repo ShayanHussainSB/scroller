@@ -1,7 +1,7 @@
 // Popup: units, presets, Night and Stop after controls, sites. Uses the real popup with a fake extension API.
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { browser, sleep } from './cdp.mjs';
+import { browser, sleep } from '../harness/cdp.mjs';
 
 let b;
 before(async () => { b = await browser(); });

@@ -1,7 +1,7 @@
 // Core engine: start/stop, glide, jumps, hooks, next chapter. Run all tests with `npm test`.
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { browser, sleep } from './cdp.mjs';
+import { browser, sleep } from '../harness/cdp.mjs';
 
 let b;
 before(async () => { b = await browser(); });

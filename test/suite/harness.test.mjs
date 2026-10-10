@@ -1,7 +1,7 @@
 // The harness itself: error guard, throttle, keys with modifiers, resize.
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { browser } from './cdp.mjs';
+import { browser } from '../harness/cdp.mjs';
 
 let b;
 before(async () => { b = await browser(); });
@@ -61,7 +61,7 @@ test('a failing test that leaks a browser ends the run, and its Chrome is gone',
   const { spawnSync, execFileSync } = await import('node:child_process');
   const { readFileSync } = await import('node:fs');
   // the exact command npm test uses, pointed at a test that fails with its browser open
-  const cmd = JSON.parse(readFileSync('package.json', 'utf8')).scripts.test.replace(`'test/*.test.mjs'`, 'test/fixtures/leak.mjs');
+  const cmd = JSON.parse(readFileSync('package.json', 'utf8')).scripts.test.replace(`'test/suite/*.test.mjs'`, 'test/harness/leak.mjs');
   const t = Date.now();
   const env = { ...process.env };
   delete env.NODE_TEST_CONTEXT; // otherwise the inner run reports to this one instead of running for real

@@ -114,8 +114,9 @@ try {
   console.error('✖', e.message);
   process.exitCode = 1;
 } finally {
+  const gone = new Promise((r) => proc.once('exit', r));
   proc.kill();
   server.close();
-  await sleep(200);
-  rmSync(profile, { recursive: true, force: true });
+  await Promise.race([gone, sleep(5000)]);
+  rmSync(profile, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
 }

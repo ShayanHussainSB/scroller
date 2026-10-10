@@ -103,7 +103,13 @@ export async function browser({ width = 1280, height = 800 } = {}) {
         width: 320, height: 600, ...size, ready: 'document.body.classList.contains("ready")',
         pre: `(${fakePopupApi})(${JSON.stringify(settings)}, ${JSON.stringify(state)})`,
       }),
-    async close() { ws.close(); proc.kill(); await sleep(100); rmSync(profile, { recursive: true, force: true }); },
+    async close() {
+      ws.close();
+      const gone = new Promise((r) => (proc.exitCode !== null ? r() : proc.once('exit', r)));
+      proc.kill();
+      await Promise.race([gone, sleep(5000)]); // Chrome writes its profile on the way out
+      rmSync(profile, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
+    },
   };
 }
 

@@ -36,7 +36,7 @@ const QUIPS = {
 const END = {
   stop: 'Stops at the last panel. The end… or is it?',
   wait: 'Keeps rolling when more pages load in.',
-  next: 'Binge mode: opens the next chapter and keeps going.',
+  next: 'Binge mode: the next chapter opens itself.',
 };
 const MODE = { smooth: 'One smooth, steady glide', step: 'A chunk at a time', pages: 'Snaps to each page, like turning it' };
 const NIGHT = {
@@ -143,7 +143,7 @@ function render() {
   $('#step-row').hidden = s.mode === 'smooth';
   $('#step-desc').textContent = s.mode === 'pages' ? 'Step size inside tall pages' : 'Screen per jump';
   $('#mode-desc').textContent = MODE[s.mode];
-  $('#end-desc').textContent = END[s.atEnd];
+  $('#end-desc').textContent = s.atEnd === 'next' && s.stopAfterCh ? `Binge mode, ${plural(s.stopAfterCh, 'chapter')} and done.` : END[s.atEnd];
   $('#faster-desc').textContent = s.nudge === 2 ? 'Doubles it per tap' : `+${Math.round((s.nudge - 1) * 100)}% per tap`;
   $('#slower-desc').textContent = s.nudge === 2 ? 'Halves it per tap' : `−${Math.round((1 - 1 / s.nudge) * 100)}% per tap`;
   $('#pauseOnManual').checked = s.pauseOnManual;

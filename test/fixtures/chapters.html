@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><title>Chapters</title>
+<style>
+  body { margin: 0; font: 16px system-ui; }
+  #content { height: 2400px; background: linear-gradient(#ddd, #888); }
+  nav, .comments { display: flex; gap: 20px; padding: 20px; }
+</style>
+<h1 id="title"></h1>
+<div id="content"></div>
+<div id="nav"></div>
+<script>
+  // Next-chapter layouts readers really use, picked by ?v=
+  const q = new URLSearchParams(location.search), v = q.get('v'), ch = +(q.get('ch') || 1);
+  const url = (n) => `chapters.html?v=${v}&ch=${n}`;
+  window.chapter = ch;
+  document.getElementById('title').textContent = `Chapter ${ch}`;
+  const nav = document.getElementById('nav');
+  const layouts = {
+    rel: () => { const l = document.createElement('link'); l.rel = 'next'; l.href = url(ch + 1); document.head.append(l); },
+    prevnext: () => (nav.innerHTML = `<a href="${url(ch - 1)}">‹ Previous chapter</a><a href="${url(ch + 1)}">Next chapter ›</a>`),
+    // the comments' own pager says "next" louder than the chapter link does
+    comments: () => (nav.innerHTML = `<a href="${url(ch + 1)}">Next ›</a>
+      <div class="comments"><a class="comments-nav next" href="#more">Next comments ›</a><a href="#p">Back to top</a></div>`),
+    arrow: () => (nav.innerHTML = `<a class="next-chap" href="${url(ch + 1)}">›</a>`),
+    // one class for both links (BEM-style "next-prev"), and the next one is just an arrow
+    shared: () => (nav.innerHTML = `<a class="chapter-nav next-prev" href="${url(ch - 1)}">‹ Previous chapter</a>
+      <a class="chapter-nav next-prev" href="${url(ch + 1)}">›</a>`),
+    // BEM: both links mention prev and next; the last word says which is which
+    bem: () => (nav.innerHTML = `<a class="prev-next__prev" href="${url(ch - 1)}">Chapter ${ch - 1}</a>
+      <a class="prev-next__next" href="${url(ch + 1)}">Chapter ${ch + 1}</a>`),
+    // a previous link with a copy-pasted "next" class, before an unlabelled next arrow
+    copied: () => (nav.innerHTML = `<a class="next-chapter" href="${url(ch - 1)}">Previous chapter</a><a href="${url(ch + 1)}">›</a>`),
+    none: () => (nav.innerHTML = '<a href="index.html">Series home</a>'),
+    dead: () => (nav.innerHTML = '<button type="button">Next chapter</button>'), // a button that goes nowhere
+    swap: () => {
+      // a single-page app: the chapter changes in place, back to the top
+      nav.innerHTML = '<button type="button" id="go">Next chapter</button>';
+      document.getElementById('go').onclick = () => {
+        window.chapter++;
+        document.getElementById('title').textContent = `Chapter ${window.chapter}`;
+        history.pushState(null, '', url(window.chapter));
+        scrollTo({ top: 0, behavior: 'instant' });
+      };
+    },
+    wait: () => {}, // infinite scroll: the test appends more content
+  };
+  layouts[v]?.();
+</script>
+<script src="../stub.js"></script>
+</html>

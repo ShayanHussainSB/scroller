@@ -120,7 +120,11 @@ function findNext() {
     if (el.tagName !== 'LINK' && !el.getClientRects().length) continue; // hidden
     const label = `${el.textContent} ${el.getAttribute('aria-label') || ''} ${el.title || ''}`.replace(/\s+/g, ' ').trim().toLowerCase();
     const attrs = `${el.id} ${el.getAttribute('class') || ''} ${el.getAttribute('rel') || ''}`.toLowerCase();
-    if (/\bprev|\bback\b/.test(label + ' ' + attrs)) continue; // prev, previous, back (not background)
+    // prev, previous, back (not background). The link's own words or arrow decide first. Class names often name
+    // both directions ("next-prev", BEM "prev-next__next"), so there the last direction word is the one that counts.
+    if (/\bprev|\bback\b/.test(label) || /^[‹«←<\s]+/.test(label)) continue;
+    const forward = /\bnext\b/.test(label) || /^[›»→>\s]+$/.test(label);
+    if (!forward && /prev|back$/.test(attrs.match(/prev|\bback\b|next/g)?.at(-1) || '')) continue;
     let score = 0;
     if (/\bnext\b/.test(label)) score += 2;
     if (/next/.test(attrs)) score += 1;

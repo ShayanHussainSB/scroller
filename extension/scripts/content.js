@@ -114,17 +114,24 @@ function report() {
 const toggle = () => (on ? stop() : start());
 
 // Best guess at the reader's "next chapter" control. Scored, because every site labels it differently.
+const DIRS = /(?<![a-z])(prev|previous|back|next)(?![a-z])/g; // whole words: not "prevent", "backdrop"
 function findNext() {
   let best = null, top = 1;
-  for (const el of document.querySelectorAll('a[href], button, [role="button"], link[rel~="next"][href]')) {
+  const els = [...document.querySelectorAll('a[href], button, [role="button"], link[rel~="next"][href]')];
+  const attrsOf = (el) => `${el.id} ${el.getAttribute('class') || ''} ${el.getAttribute('rel') || ''}`.toLowerCase();
+  const shared = new Map(); // class strings used by more than one control
+  for (const el of els) shared.set(attrsOf(el), (shared.get(attrsOf(el)) || 0) + 1);
+  for (const el of els) {
     if (el.tagName !== 'LINK' && !el.getClientRects().length) continue; // hidden
     const label = `${el.textContent} ${el.getAttribute('aria-label') || ''} ${el.title || ''}`.replace(/\s+/g, ' ').trim().toLowerCase();
-    const attrs = `${el.id} ${el.getAttribute('class') || ''} ${el.getAttribute('rel') || ''}`.toLowerCase();
+    const attrs = attrsOf(el);
     // prev, previous, back (not background). The link's own words or arrow decide first. Class names often name
-    // both directions ("next-prev", BEM "prev-next__next"), so there the last direction word is the one that counts.
+    // both directions ("next-prev", BEM "prev-next__next"): there the last direction word counts, unless the
+    // same classes sit on another control too (icon-only arrows), which is a coin flip. Stopping beats going back.
     if (/\bprev|\bback\b/.test(label) || /^[‹«←<\s]+/.test(label)) continue;
     const forward = /\bnext\b/.test(label) || /^[›»→>\s]+$/.test(label);
-    if (!forward && /prev|back$/.test(attrs.match(/prev|\bback\b|next/g)?.at(-1) || '')) continue;
+    const dirs = attrs.match(DIRS) || [];
+    if (!forward && (dirs.at(-1) !== 'next' && dirs.length || new Set(dirs).size > 1 && shared.get(attrs) > 1)) continue;
     let score = 0;
     if (/\bnext\b/.test(label)) score += 2;
     if (/next/.test(attrs)) score += 1;

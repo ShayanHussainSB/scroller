@@ -54,6 +54,22 @@ test('a previous link with a copy-pasted next class is never picked', async () =
   await p.close();
 });
 
+test('ambiguous icon-only buttons are never followed backwards', async () => {
+  const p = await b.open('chapters.html?v=icons', { atEnd: 'next', pxs: 2000 });
+  assert.notEqual(await p.eval(`findNext()?.getAttribute('href')`), 'chapters.html?v=icons&ch=0');
+  await p.eval('scrollTo(0, document.body.scrollHeight)');
+  await p.key('s');
+  await p.until('!on', 6000); // nothing safe to follow: stop, as before
+  assert.ok(!(await p.eval('location.search')).includes('ch=0'), 'went back a chapter');
+  await p.close();
+});
+
+test('"prev" inside another word ("js-prevent") is not a direction', async () => {
+  const p = await b.open('chapters.html?v=substring');
+  assert.equal(await p.eval(`findNext()?.getAttribute('href')`), 'chapters.html?v=substring&ch=2');
+  await p.close();
+});
+
 test('next: no next chapter on the page stops instead', async () => {
   const p = await b.open('chapters.html?v=none', { atEnd: 'next', pxs: 2000 });
   await atBottom(p);

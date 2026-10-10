@@ -30,6 +30,11 @@
       <a class="prev-next__next" href="${url(ch + 1)}">Chapter ${ch + 1}</a>`),
     // a previous link with a copy-pasted "next" class, before an unlabelled next arrow
     copied: () => (nav.innerHTML = `<a class="next-chapter" href="${url(ch - 1)}">Previous chapter</a><a href="${url(ch + 1)}">›</a>`),
+    // icon-only buttons, one shared class, no words at all: genuinely ambiguous
+    icons: () => (nav.innerHTML = `<a class="chapter-nav prev-next" href="${url(ch - 1)}"><i class="fa-chevron-left"></i></a>
+      <a class="chapter-nav prev-next" href="${url(ch + 1)}"><i class="fa-chevron-right"></i></a>`),
+    // "prev" inside another word ("js-prevent") is not a direction
+    substring: () => (nav.innerHTML = `<a class="next-link js-prevent" href="${url(ch + 1)}">Chapter ${ch + 1}</a>`),
     none: () => (nav.innerHTML = '<a href="index.html">Series home</a>'),
     dead: () => (nav.innerHTML = '<button type="button">Next chapter</button>'), // a button that goes nowhere
     swap: () => {

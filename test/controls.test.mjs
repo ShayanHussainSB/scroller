@@ -103,15 +103,17 @@ test('faster and slower do nothing while stopped', async () => {
 
 test('starts ease in rather than lurch', async () => {
   const p = await b.open('webtoon.html', { pxs: 1000 });
+  // sample position on every frame with the page's own clock, so a slow machine can't skew the comparison
+  await p.eval(`window.samples = []; (function f() { samples.push([performance.now(), scrollY]); requestAnimationFrame(f) })()`);
   await p.key('s');
-  const y0 = await p.eval('scrollY');
-  await sleep(200); // first 200ms: still easing in
-  const early = (await p.eval('scrollY')) - y0;
+  const t0 = await p.eval('performance.now()');
   await p.until('level === 1');
-  const y1 = await p.eval('scrollY');
-  await sleep(200); // 200ms at full speed
-  const full = (await p.eval('scrollY')) - y1;
-  assert.ok(early < full * 0.6, `eased: ${early}px vs ${full}px`);
+  await p.until(`performance.now() > ${t0} + 1200`);
+  const [early, full] = await p.eval(`(() => {
+    const at = (t) => samples.find(([s]) => s >= t)?.[1] ?? scrollY;
+    return [at(${t0} + 200) - at(${t0}), at(${t0} + 1000) - at(${t0} + 800)];
+  })()`);
+  assert.ok(early < full * 0.6, `eased: ${early}px in the first 200ms vs ${full}px at full speed`);
   await p.close();
 });
 
@@ -175,11 +177,13 @@ test('stopping shows "Stopped" briefly, then the pill hides', async () => {
 test('sites with CSS smooth scrolling still glide at the set speed', async () => {
   const p = await b.open('webtoon.html', { pxs: 300 });
   await p.eval(`document.documentElement.style.scrollBehavior = 'smooth'`);
+  await p.eval(`window.samples = []; (function f() { samples.push([performance.now(), scrollY]); requestAnimationFrame(f) })()`);
   await p.key('s');
   await p.until('level === 1');
-  const y = await p.eval('scrollY');
-  await sleep(1000); // one second at full speed
-  const moved = (await p.eval('scrollY')) - y;
+  const t = await p.eval('performance.now()');
+  await p.until(`performance.now() > ${t} + 1100`);
+  // one second at full speed, timed by the page's own clock
+  const moved = await p.eval(`(() => { const at = (x) => samples.find(([s]) => s >= x)[1]; return at(${t} + 1000) - at(${t}) })()`);
   assert.ok(moved > 240 && moved < 360, `~300px in 1s, got ${moved}`);
   await p.close();
 });

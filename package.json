@@ -17,6 +17,7 @@
     "check": "node scripts/check.mjs",
     "test": "node --test --test-force-exit 'test/suite/*.test.mjs'",
     "build": "node scripts/build.mjs",
+    "site": "node scripts/site.mjs",
     "release-notes": "node scripts/release-notes.mjs",
     "test:slow": "TEST_THROTTLE=4 node --test --test-force-exit 'test/suite/*.test.mjs'",
     "test:e2e": "node test/e2e/extension.e2e.mjs"

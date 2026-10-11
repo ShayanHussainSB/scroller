@@ -1,0 +1,16 @@
+title: "[Idea] "
+body:
+  - type: textarea
+    id: situation
+    attributes:
+      label: When would this help?
+      description: The reading situation, such as the site, the kind of series, or the time of night.
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: The idea
+      description: What Scroller could do. Rough is fine.
+    validations:
+      required: true

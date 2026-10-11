@@ -1,0 +1,13 @@
+body:
+  - type: textarea
+    id: question
+    attributes:
+      label: Your question
+      description: What you tried and what happened.
+    validations:
+      required: true
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and Scroller version
+      placeholder: Chrome 141, Scroller 1.3.0

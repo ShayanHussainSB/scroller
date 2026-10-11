@@ -4,6 +4,10 @@ Thanks for helping make hands-free reading better. Bug reports, reader sites whe
 
 By taking part you agree to follow the [Code of Conduct](CODE_OF_CONDUCT.md). For security issues, see [SECURITY.md](SECURITY.md) instead of opening an issue.
 
+## Questions and ideas
+
+Ask questions in [Q&A](https://github.com/ShayanHussainSB/scroller/discussions/categories/q-a) and talk through ideas in [Ideas](https://github.com/ShayanHussainSB/scroller/discussions/categories/ideas) on GitHub Discussions. An idea that's taken shape can become a [feature request](https://github.com/ShayanHussainSB/scroller/issues/new?template=feature_request.yml).
+
 ## Reporting a bug
 
 Use the [bug report form](https://github.com/ShayanHussainSB/scroller/issues/new?template=bug_report.yml). The most useful details are:
@@ -60,7 +64,7 @@ test/                    Headless Chrome on fixture pages, no dependencies (how 
 docs/
 ├── TESTING.md           Test layers, writing a test, the real-site checklist for releases
 └── screenshots/         Popup images for the README, release notes and website; site/ has captures of the website
-.github/                 CI workflows, Dependabot, issue and PR templates
+.github/                 CI workflows, Dependabot, issue, discussion and PR templates, funding link
 ```
 
 ## Guidelines

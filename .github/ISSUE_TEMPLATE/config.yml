@@ -1,5 +1,11 @@
-blank_issues_enabled: true
+blank_issues_enabled: false
 contact_links:
+  - name: Ask a question
+    url: https://github.com/ShayanHussainSB/scroller/discussions/categories/q-a
+    about: Installing, setting up, or "is this supposed to happen?" Ask in Discussions.
+  - name: Share an idea
+    url: https://github.com/ShayanHussainSB/scroller/discussions/categories/ideas
+    about: Talk through an idea with other readers before it becomes a feature request.
   - name: Report a security vulnerability
     url: https://github.com/ShayanHussainSB/scroller/security/advisories/new
     about: Please report security issues privately, not as a public issue.

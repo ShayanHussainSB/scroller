@@ -47,8 +47,10 @@ test('resize changes the viewport', async () => {
 });
 
 test('throttle slows the page down', async () => {
-  // fastest of five runs on each side, so a cold JIT can't fake the difference
-  const cost = (p) => p.eval(`Math.min(...Array.from({ length: 5 }, () => { const t = performance.now(); let x = 0; for (let i = 0; i < 3e6; i++) x += i; return performance.now() - t }))`);
+  // one warm-up run so a cold JIT can't fake the difference, then the total of five long runs: Chrome throttles
+  // by pausing the renderer in slices, so a run of a couple of milliseconds (or the fastest of several) can slip
+  // between pauses and look unthrottled
+  const cost = (p) => p.eval(`(() => { const run = () => { const t = performance.now(); let x = 0; for (let i = 0; i < 3e7; i++) x += i; return performance.now() - t }; run(); let ms = 0; for (let i = 0; i < 5; i++) ms += run(); return ms })()`);
   const slow = await browser({ throttle: 6 }), full = await browser({ throttle: 1 }); // explicit, whatever TEST_THROTTLE says
   const p = await slow.open('webtoon.html');
   const q = await full.open('webtoon.html');

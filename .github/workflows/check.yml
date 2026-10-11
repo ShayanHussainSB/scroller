@@ -17,3 +17,5 @@ jobs:
         with:
           node-version: 22
       - run: npm run check
+      - run: npm test # headless Chrome; ubuntu-latest ships google-chrome
+      - run: npm run test:slow # the same suite on a CPU four times slower; timing bugs show up here

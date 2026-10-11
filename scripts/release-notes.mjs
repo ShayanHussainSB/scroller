@@ -64,6 +64,7 @@ export function releaseNotes(version, changelog = readFileSync('CHANGELOG.md', '
     prev
       ? `**Full changelog:** [v${prev}...v${version}](https://github.com/${REPO}/compare/v${prev}...v${version})`
       : '**Full changelog:** this is the first release.',
+    `Enjoying Scroller? [Star the repo](https://github.com/${REPO}), [buy me a coffee](https://shayanhussainsb.github.io/scroller/#support), or share ideas in [Discussions](https://github.com/${REPO}/discussions).`,
   ].filter(Boolean).join('\n\n') + '\n';
 }
 

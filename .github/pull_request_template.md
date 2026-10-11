@@ -8,7 +8,8 @@
 
 ## Testing
 
-- [ ] `npm run check` passes
+- [ ] `npm run check`, `npm test` and `npm run test:slow` pass (see `test/README.md`)
+- [ ] Content script changes: `npm run test:e2e` passes
 - [ ] Reloaded the extension and refreshed a reader tab in Chrome (or another Chromium browser)
 - [ ] Firefox too, if the change touches the popup, page script or manifest (`npm run build`, then load the Firefox zip from `about:debugging`)
 - [ ] Tested on at least one real reader site (name it below)

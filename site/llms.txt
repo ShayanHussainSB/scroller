@@ -33,3 +33,5 @@ Scroller is not in the Chrome Web Store or on Firefox Add-ons yet. Chrome: downl
 - [README](https://github.com/ShayanHussainSB/scroller/blob/main/README.md): features, usage, troubleshooting
 - [Changelog](https://github.com/ShayanHussainSB/scroller/blob/main/CHANGELOG.md): what changed in every release
 - [Report a bug](https://github.com/ShayanHussainSB/scroller/issues/new?template=bug_report.yml)
+- [Discussions](https://github.com/ShayanHussainSB/scroller/discussions): questions, ideas and show and tell
+- [Support](https://shayanhussainsb.github.io/scroller/#support): buy the author a coffee in SOL, ETH, BTC or BNB

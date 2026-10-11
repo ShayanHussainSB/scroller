@@ -75,14 +75,15 @@
     {
       "@type": "FAQPage",
       "mainEntity": [
+        { "@type": "Question", "name": "Nothing happens when I press S.", "acceptedAnswer": { "@type": "Answer", "text": "Open the popup. If it says Can't reach this page, click Reload tab: pages opened before you installed or updated don't have Scroller yet. In Firefox, allow Scroller to access all websites under about:addons, Scroller, Permissions." } },
         { "@type": "Question", "name": "Is it free?", "acceptedAnswer": { "@type": "Answer", "text": "Yes. Scroller is free and open source under the MIT license. No accounts, no ads, no paid tier." } },
+        { "@type": "Question", "name": "How can I support Scroller?", "acceptedAnswer": { "@type": "Answer", "text": "Star the repo, tell a friend who reads, or share ideas in GitHub Discussions. If you'd like to chip in, you can buy me a coffee in SOL, ETH, BTC or BNB." } },
         { "@type": "Question", "name": "Does it work on my phone?", "acceptedAnswer": { "@type": "Answer", "text": "Scroller is a desktop browser extension: Chrome, Edge, Brave, Arc, Opera, Vivaldi and Firefox 140 or newer. On your phone, send yourself the link and install it on your computer." } },
         { "@type": "Question", "name": "Will it work on my manga or novel site?", "acceptedAnswer": { "@type": "Answer", "text": "It runs on any website, including readers that use CSS smooth scrolling and readers that scroll an inner panel instead of the page. Browser pages like chrome:// and the extension stores don't allow extensions at all." } },
         { "@type": "Question", "name": "How does Next chapter find the button?", "acceptedAnswer": { "@type": "Answer", "text": "It scores every visible link and button on its words, label, class names and rel=\"next\". Anything that says prev or back is skipped. If it can't find one, can't tell which of two arrows goes forward, or the click doesn't move the page on, it stops rather than going back or looping. The next chapter has to be on the same website." } },
         { "@type": "Question", "name": "How do words per minute work?", "acceptedAnswer": { "@type": "Answer", "text": "On text pages Scroller switches to words per minute by itself and measures how much room a word takes in that page's own font, line height and column, so 250 wpm is 250 words a minute on any site, at any zoom. Chinese and Japanese count characters at a matched pace." } },
         { "@type": "Question", "name": "Why isn't it in the Chrome Web Store?", "acceptedAnswer": { "@type": "Answer", "text": "Not yet. For now you download it from the latest GitHub release and load it yourself, which takes a couple of minutes, once. Signed Firefox builds are planned." } },
-        { "@type": "Question", "name": "Does it collect anything?", "acceptedAnswer": { "@type": "Answer", "text": "No. No accounts, tracking, analytics or network requests. Your settings and per-site speeds live in your browser's local extension storage." } },
-        { "@type": "Question", "name": "Nothing happens when I press S.", "acceptedAnswer": { "@type": "Answer", "text": "Open the popup. If it says Can't reach this page, click Reload tab: pages opened before you installed or updated don't have Scroller yet. In Firefox, allow Scroller to access all websites under about:addons, Scroller, Permissions." } }
+        { "@type": "Question", "name": "Does it collect anything?", "acceptedAnswer": { "@type": "Answer", "text": "No. No accounts, tracking, analytics or network requests. Your settings and per-site speeds live in your browser's local extension storage." } }
       ]
     }
   ]
@@ -685,16 +686,54 @@
   .browserbox .fine { margin: -8px 0 28px; color: #444; }
   .after { margin-top: 28px; color: var(--ink-2); max-width: 46em; }
 
-  /* ── FAQ ────────────────────────────────────────────── */
-  .faq { margin-top: 48px; border-top: 1px solid var(--line-2); }
-  .faq details { border-bottom: 1px solid var(--line); }
-  .faq summary { list-style: none; cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 20px; padding: 24px 0; font-size: clamp(1.15rem, 2vw, 1.45rem); font-weight: 700; letter-spacing: -0.02em; }
+  /* ── FAQ: the volume's omake. You ask in a speech bubble, the strip's reader answers in a caption box ── */
+  .faq { margin-top: 56px; display: flex; flex-direction: column; gap: 22px; }
+  .faq details { display: flex; flex-direction: column; align-items: flex-start; }
+  .faq details:nth-child(even) { align-items: flex-end; }
+  .faq summary {
+    position: relative; list-style: none; cursor: pointer; display: flex; align-items: center; gap: 18px; max-width: min(100%, 30em);
+    padding: 18px 26px 20px; border-radius: 34px; background: var(--paper); color: #111; box-shadow: inset 0 0 0 2.5px #111, 0 20px 40px -24px #000;
+    font-size: clamp(1.15rem, 2vw, 1.45rem); font-weight: 800; letter-spacing: -0.025em; line-height: 1.2; transform: rotate(-.8deg);
+    transition: transform .35s var(--out);
+  }
+  .faq details:nth-child(even) summary { transform: rotate(.8deg); }
+  .faq summary:hover, .faq details:nth-child(even) summary:hover { transform: rotate(0) scale(1.02); }
   .faq summary::-webkit-details-marker { display: none; }
-  .faq summary svg { flex: none; transition: transform .3s var(--ease); color: var(--ink-2); }
-  .faq details[open] summary svg { transform: rotate(45deg); }
-  .faq details p { padding: 0 0 26px; color: var(--ink-2); max-width: 40em; }
-  .faq summary:hover svg { color: var(--ink); }
-  .faq code { font: 600 .92em/1 'Bricolage', system-ui, sans-serif; color: var(--ink); }
+  .faq summary::after {
+    content: ""; position: absolute; bottom: -11px; left: 34px; width: 20px; height: 20px; background: var(--paper);
+    border-right: 2.5px solid #111; border-bottom: 2.5px solid #111; transform: skewX(28deg) rotate(45deg); transform-origin: center;
+  }
+  .faq details:nth-child(even) summary::after { left: auto; right: 34px; transform: skewX(-28deg) rotate(45deg); }
+  .faq summary:focus-visible { outline: 2px solid var(--ink); outline-offset: 5px; border-radius: 34px; }
+  .faq summary i { flex: none; min-width: 1.6em; text-align: center; font: normal 900 1.5em/1 'Bricolage', system-ui, sans-serif; color: transparent; -webkit-text-stroke: 2px #111; transform: rotate(8deg); }
+  .faq summary i::before { content: "?!"; }
+  .faq details[open] summary i::before { content: "!"; }
+  .faq details[open] summary i { color: #111; animation: pop .5s var(--out); }
+  .faq .a {
+    position: relative; margin-top: 26px; max-width: min(100%, 40em); padding: 30px 26px 24px; color: #111;
+    background: radial-gradient(#11111124 1.1px, transparent 1.5px) 100% 0 / 6px 6px no-repeat, var(--paper);
+    box-shadow: inset 0 0 0 3px #111, 0 30px 60px -30px #000; transform: rotate(.5deg);
+    animation: wipe .55s var(--out) both;
+  }
+  .faq details:nth-child(even) .a { transform: rotate(-.5deg); }
+  .faq .a::before {
+    content: ""; position: absolute; right: 3px; top: 3px; width: 40%; height: 60%; pointer-events: none;
+    background: radial-gradient(#111 1.1px, transparent 1.5px) 0 0 / 6px 6px;
+    -webkit-mask: linear-gradient(225deg, #000, transparent 70%); mask: linear-gradient(225deg, #000, transparent 70%); opacity: .3;
+  }
+  .faq .a > * { position: relative; }
+  .faq .a b { position: absolute; top: -13px; left: 18px; padding: 4px 10px 5px; background: #111; color: var(--paper); font-size: 12px; font-weight: 800; letter-spacing: .12em; line-height: 1; transform: rotate(-2deg); }
+  .faq .a a { color: #111; }
+  .faq .a :focus-visible { outline-color: #111; }
+  .faq .a .btn { margin-top: 14px; background: #111; border-color: #111; color: var(--paper); }
+  .faq .a .shared { color: #444; }
+  .faq code { font: 600 .92em/1 'Bricolage', system-ui, sans-serif; padding: 2px 6px; border-radius: 6px; background: #e2e0da; border: 1px solid #c9c6bf; overflow-wrap: anywhere; }
+  @keyframes wipe { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(-20px -20px -20px -20px); } }
+  .faq .more { margin-top: 40px; color: var(--ink-2); }
+  @supports (animation-timeline: view()) {
+    .faq summary { animation: bubble linear both; animation-timeline: view(); animation-range: entry 5% cover 25%; }
+    @keyframes bubble { from { opacity: 0; scale: .7; translate: 0 30px; } }
+  }
 
   /* ── The end: a manga's last page ───────────────────── */
   .end { position: relative; margin-top: clamp(120px, 16vw, 200px); overflow: clip; isolation: isolate; border-top: 1px solid var(--line); }
@@ -736,6 +775,66 @@
   .running .giant span { -webkit-text-stroke-color: var(--red); color: var(--red); }
 
   /* ── Small screens ──────────────────────────────────── */
+
+  /* ── Support: a coffee for the author, in a paper panel over halftone ── */
+  .linkish { padding: 0; border: 0; background: none; font: inherit; color: inherit; text-decoration: underline; text-underline-offset: 4px; text-decoration-thickness: 1px; cursor: pointer; }
+  .linkish:hover { text-decoration-thickness: 2px; color: var(--ink); }
+  .cols .linkish { min-height: 40px; text-decoration: none; }
+  .cols .linkish:hover { text-decoration: underline; }
+  .tipline { margin-top: 22px; color: var(--ink-2); font-size: 15px; }
+  .tipline .linkish { color: var(--ink); font-weight: 600; }
+  .thanks {
+    position: fixed; z-index: 41; right: max(16px, env(safe-area-inset-right)); bottom: calc(max(16px, env(safe-area-inset-bottom)) + 62px);
+    width: min(100% - 32px, 360px); padding: 20px 20px 18px; border-radius: 26px; color: #111; background: var(--paper);
+    box-shadow: inset 0 0 0 2.5px #111, 0 30px 60px -20px #000; transform: rotate(-1deg); animation: pop .55s var(--out);
+  }
+  .thanks[hidden] { display: none; }
+  .thanks::after { content: ""; position: absolute; bottom: -11px; right: 40px; width: 20px; height: 20px; background: var(--paper); border-right: 2.5px solid #111; border-bottom: 2.5px solid #111; transform: skewX(-28deg) rotate(45deg); }
+  .thanks b { display: block; font-size: 1.5rem; font-weight: 800; letter-spacing: -0.03em; line-height: 1; }
+  .thanks p { margin-top: 8px; font-size: 15px; line-height: 1.4; color: #333; padding-right: 20px; }
+  .thanks .row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+  .thanks .btn { min-height: 40px; padding: 0 16px; font-size: 14px; background: #111; border-color: #111; color: var(--paper); }
+  .thanks .btn.alt { background: none; color: #111; border-color: #111; }
+  .thanks .btn.alt:hover { background: #e2e0da; }
+  .thanks .x { position: absolute; top: 8px; right: 8px; display: grid; place-items: center; width: 40px; height: 40px; border: 0; border-radius: 50%; background: none; color: #111; cursor: pointer; }
+  .thanks .x:hover { background: #e2e0da; }
+  .thanks :focus-visible { outline-color: #111; }
+  .tip {
+    width: min(100% - 32px, 560px); max-height: calc(100dvh - 32px); padding: clamp(26px, 4vw, 40px); border: 0; overflow: auto; overscroll-behavior: contain;
+    color: #111; background: radial-gradient(#11111124 1.1px, transparent 1.5px) 100% 0 / 6px 6px no-repeat, var(--paper);
+    box-shadow: inset 0 0 0 3px #111, 0 40px 80px -20px #000; transform: rotate(-.6deg);
+  }
+  .tip[open] { animation: pop .55s var(--out); }
+  .tip::backdrop { background: radial-gradient(#ffffff14 1.1px, transparent 1.5px) 0 0 / 7px 7px, #000000d9; }
+  .tip:focus, .tip:focus-visible { outline: none; }
+  .tip :focus-visible { outline-color: #111; }
+  .tip .x { position: absolute; top: 14px; right: 14px; display: grid; place-items: center; width: 44px; height: 44px; border: 0; border-radius: 50%; background: none; color: #111; cursor: pointer; }
+  .tip .x:hover { background: #e2e0da; }
+  .tip .cup { display: block; width: 74px; height: 74px; margin: -6px 0 6px -6px; color: #111; }
+  .tip .cup .steam path { stroke-dasharray: 30; animation: steam 2.6s var(--ease) infinite; }
+  .tip .cup .steam path:nth-child(2) { animation-delay: .5s; }
+  .tip .cup .steam path:nth-child(3) { animation-delay: 1s; }
+  @keyframes steam { 0% { stroke-dashoffset: 30; opacity: 0; } 30% { opacity: 1; } 100% { stroke-dashoffset: -30; opacity: 0; } }
+  .tip h2 { font-size: clamp(2.2rem, 7vw, 3.2rem); letter-spacing: -0.045em; line-height: .95; padding-right: 40px; }
+  .tip .sfx { -webkit-text-stroke-color: #111; -webkit-text-stroke-width: 2.5px; }
+  .tip > p { margin-top: 14px; color: #333; max-width: 34em; }
+  .coins { list-style: none; margin: 24px 0 0; padding: 0; display: grid; gap: 10px; }
+  .coins li { display: grid; grid-template-columns: 54px minmax(0, 1fr) auto; gap: 4px 14px; align-items: center; padding: 12px 12px 12px 14px; background: #e9e7e1; box-shadow: inset 0 0 0 1.5px #111; }
+  .coins b { display: grid; place-items: center; height: 30px; background: #111; color: var(--paper); font-size: 13px; font-weight: 800; letter-spacing: .08em; }
+  .coins span { display: grid; gap: 2px; min-width: 0; }
+  .coins small { font-size: 13px; font-weight: 700; color: #444; }
+  .coins code { font: 500 13.5px/1.35 ui-monospace, 'SF Mono', Menlo, Consolas, monospace; color: #111; overflow-wrap: anywhere; user-select: all; }
+  .coins button { min-width: 84px; min-height: 44px; padding: 0 14px; border: 1.5px solid #111; border-radius: 999px; background: #111; color: var(--paper); font: 700 14px/1 'Bricolage', system-ui, sans-serif; cursor: pointer; transition: background .2s var(--ease), color .2s var(--ease); }
+  .coins button:hover { background: #000; }
+  .coins button.done { background: var(--paper); color: #111; animation: pop .4s var(--out); }
+  .tip .fine { font-size: 14px; color: #444; }
+  .tip .alt { padding-top: 16px; border-top: 1.5px dashed #11111155; font-size: 15px; }
+  .tip a { color: #111; }
+  @media (max-width: 560px) {
+    .coins li { gap: 10px 12px; }
+    .coins span { grid-column: 1 / -1; grid-row: 2; }
+    .coins button { grid-column: 3; grid-row: 1; justify-self: end; }
+  }
   @media (max-width: 1080px) {
     .chapters a small { display: none; }
     .hero .stage { padding-right: 40px; }
@@ -978,7 +1077,7 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
   <a href="#bedtime"><small>CH.4</small>Binge</a>
   <a href="#keys"><small>CH.5</small>Keys</a>
   <a href="#install"><small>CH.6</small>Install</a>
-  <a href="#faq"><small>FAQ</small>Questions</a>
+  <a href="#faq"><small>OMAKE</small>Reader mail</a>
 </div>
 
 <main id="main">
@@ -1216,6 +1315,7 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
         <div><b>Storage</b><p>Saves your settings and per-site speeds in your browser. Removing Scroller deletes everything.</p></div>
         <div><b>All sites</b><p>So it can hear your start key on whatever page you're reading. It does nothing until you press it.</p></div>
       </div>
+      <p class="tipline">No ads either. Scroller runs on readers: <a href="https://github.com/ShayanHussainSB/scroller">star it on GitHub</a> or <button class="linkish" type="button" data-tip>buy me a coffee</button>.</p>
     </div>
   </section>
 
@@ -1249,23 +1349,25 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
           <a class="btn" data-dl="firefox" href="https://github.com/ShayanHussainSB/scroller/releases/latest"><svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M9 2.5v9m0 0L5.2 7.7M9 11.5l3.8-3.8M3 13.5V15h12v-1.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Download for Firefox</a>
         </div>
       </div>
-      <p class="after">Tabs that were already open need a reload before Scroller can run in them. <a href="https://github.com/ShayanHussainSB/scroller/subscription">Watch the repo</a> to hear about new chapters, er, versions.</p>
+      <p class="after">Tabs that were already open need a reload before Scroller can run in them. <a href="https://github.com/ShayanHussainSB/scroller">Star</a> or <a href="https://github.com/ShayanHussainSB/scroller/subscription">watch the repo</a> to hear about new chapters, er, versions.</p>
     </div>
   </section>
 
   <section class="sec" id="faq" aria-labelledby="h-faq">
     <div class="wrap">
-      <h2 id="h-faq">Questions.</h2>
+      <h2 id="h-faq">Reader <span class="sfx">mail.</span></h2>
       <div class="faq">
-        <details><summary>Is it free?<svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3v14M3 10h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></summary><p>Yes. Scroller is free and open source under the MIT license. No accounts, no ads, no paid tier.</p></details>
-        <details><summary>Does it work on my phone?<svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3v14M3 10h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></summary><p>Scroller is a desktop browser extension: Chrome, Edge, Brave, Arc, Opera, Vivaldi and Firefox 140 or newer. On your phone, send yourself the link and install it on your computer.</p></details>
-        <details><summary>Will it work on my manga or novel site?<svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3v14M3 10h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></summary><p>It runs on any website, including readers that use CSS smooth scrolling and readers that scroll an inner panel instead of the page. Browser pages like <code>chrome://</code> and the extension stores don't allow extensions at all.</p></details>
-        <details><summary>How does Next chapter find the button?<svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3v14M3 10h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></summary><p>It scores every visible link and button on its words, label, class names and <code>rel="next"</code>. Anything that says prev or back is skipped. If it can't find one, can't tell which of two arrows goes forward, or the click doesn't move the page on, it stops rather than going back or looping. The next chapter has to be on the same website.</p></details>
-        <details><summary>How do words per minute work?<svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3v14M3 10h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></summary><p>On text pages Scroller switches to words per minute by itself and measures how much room a word takes in that page's own font, line height and column, so 250 wpm is 250 words a minute on any site, at any zoom. Chinese and Japanese count characters at a matched pace.</p></details>
-        <details><summary>Why isn&#x27;t it in the Chrome Web Store?<svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3v14M3 10h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></summary><p>Not yet. For now you download it from the latest GitHub release and load it yourself, which takes a couple of minutes, once. Signed Firefox builds are planned.</p></details>
-        <details><summary>Does it collect anything?<svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3v14M3 10h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></summary><p>No. No accounts, tracking, analytics or network requests. Your settings and per-site speeds live in your browser's local extension storage.</p></details>
-        <details><summary>Nothing happens when I press S.<svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 3v14M3 10h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></summary><p>Open the popup. If it says Can't reach this page, click Reload tab: pages opened before you installed or updated don't have Scroller yet. In Firefox, allow Scroller to access all websites under <code>about:addons</code>, Scroller, Permissions.</p></details>
+        <details><summary><span>Nothing happens when I press S.</span><i aria-hidden="true"></i></summary><div class="a"><b aria-hidden="true">THE READER</b><p>Open the <a href="#popup">popup</a>. If it says Can't reach this page, click Reload tab: pages opened before you installed or updated don't have Scroller yet. In Firefox, allow Scroller to access all websites under <code>about:addons</code>, Scroller, Permissions.</p></div></details>
+        <details><summary><span>Is it free?</span><i aria-hidden="true"></i></summary><div class="a"><b aria-hidden="true">THE READER</b><p>Yes. Scroller is free and open source under the MIT license. No accounts, no ads, no paid tier.</p></div></details>
+        <details><summary><span>How can I support Scroller?</span><i aria-hidden="true"></i></summary><div class="a"><b aria-hidden="true">THE READER</b><p>Star the repo, tell a friend who reads, or share ideas in GitHub Discussions. If you'd like to chip in, you can buy me a coffee in SOL, ETH, BTC or BNB.<br><button class="btn" type="button" data-tip>Buy me a coffee</button></p></div></details>
+        <details><summary><span>Does it work on my phone?</span><i aria-hidden="true"></i></summary><div class="a"><b aria-hidden="true">THE READER</b><p>Scroller is a desktop browser extension: Chrome, Edge, Brave, Arc, Opera, Vivaldi and Firefox 140 or newer. On your phone, send yourself the link and install it on your computer.<span class="phone-only"><br><button class="btn" type="button" data-share>Send it to my laptop</button> <span class="shared" data-shared aria-live="polite"></span></span></p></div></details>
+        <details><summary><span>Will it work on my manga or novel site?</span><i aria-hidden="true"></i></summary><div class="a"><b aria-hidden="true">THE READER</b><p>It runs on any website, including readers that use CSS smooth scrolling and readers that scroll an inner panel instead of the page. Browser pages like <code>chrome://</code> and the extension stores don't allow extensions at all.</p></div></details>
+        <details><summary><span>How does Next chapter find the button?</span><i aria-hidden="true"></i></summary><div class="a"><b aria-hidden="true">THE READER</b><p>It scores every visible link and button on its words, label, class names and <code>rel="next"</code>. Anything that says prev or back is skipped. If it can't find one, can't tell which of two arrows goes forward, or the click doesn't move the page on, it stops rather than going back or looping. The next chapter has to be on the same website.</p></div></details>
+        <details><summary><span>How do words per minute work?</span><i aria-hidden="true"></i></summary><div class="a"><b aria-hidden="true">THE READER</b><p>On text pages Scroller switches to words per minute by itself and measures how much room a word takes in that page's own font, line height and column, so 250 wpm is 250 words a minute on any site, at any zoom. Chinese and Japanese count characters at a matched pace.</p></div></details>
+        <details><summary><span>Why isn&#x27;t it in the Chrome Web Store?</span><i aria-hidden="true"></i></summary><div class="a"><b aria-hidden="true">THE READER</b><p>Not yet. For now you download it from the latest GitHub release and load it yourself, which takes a couple of minutes, once. Signed Firefox builds are planned.</p></div></details>
+        <details><summary><span>Does it collect anything?</span><i aria-hidden="true"></i></summary><div class="a"><b aria-hidden="true">THE READER</b><p>No. No accounts, tracking, analytics or network requests. Your settings and per-site speeds live in your browser's local extension storage.</p></div></details>
       </div>
+      <p class="more">Still stuck, or got an idea? <a href="https://github.com/ShayanHussainSB/scroller/discussions">Ask in Discussions</a>.</p>
     </div>
   </section>
 
@@ -1287,6 +1389,7 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
           <button class="btn" type="button" data-share>Send it to my laptop</button>
           <p class="shared" data-shared aria-live="polite"></p>
         </div>
+        <p class="tipline">Did it save your thumbs? <a href="https://github.com/ShayanHussainSB/scroller">Star the repo</a>, <button class="linkish" type="button" data-tip>buy me a coffee</button>, or <a href="https://github.com/ShayanHussainSB/scroller/discussions/categories/ideas">suggest what's next</a>.</p>
       </div>
       <div class="runner" aria-hidden="true">
         <div class="frame"><svg viewBox="14 616 372 330"><use href="#strip"/></svg></div>
@@ -1319,13 +1422,15 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
           <li><a href="https://github.com/ShayanHussainSB/scroller">GitHub <span class="stars" data-stars hidden><svg width="11" height="11" viewBox="0 0 12 12" aria-hidden="true"><path d="M6 1l1.5 3.2 3.5.4-2.6 2.3.7 3.5L6 8.7 2.9 10.4l.7-3.5L1 4.6l3.5-.4z" fill="currentColor"/></svg><span></span></span></a></li>
           <li><a href="https://github.com/ShayanHussainSB/scroller/blob/main/CHANGELOG.md">Changelog</a></li>
           <li><a href="https://github.com/ShayanHussainSB/scroller/blob/main/CONTRIBUTING.md">Contribute</a></li>
+          <li><a href="#support" data-tip>Buy me a coffee</a></li>
         </ul>
       </div>
       <div>
         <h3>Help</h3>
         <ul>
-          <li><a href="#faq">Questions</a></li>
+          <li><a href="#faq">Reader mail</a></li>
           <li><a href="https://github.com/ShayanHussainSB/scroller/issues/new?template=bug_report.yml">Report a site</a></li>
+          <li><a href="https://github.com/ShayanHussainSB/scroller/discussions">Discussions</a></li>
           <li><a href="#privacy">Privacy</a></li>
         </ul>
       </div>
@@ -1339,6 +1444,7 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
 </footer>
 
 <button class="pill gone" id="sitepill" type="button" aria-label="Stop scrolling this page" hidden><i class="dot"></i><span class="seg" data-label>Stopped</span><span class="seg dim" data-left></span><span class="hl"><i></i></span></button>
+<aside class="thanks" id="thanks" aria-labelledby="h-thanks" hidden><b id="h-thanks">The end.</b><p>You just read this whole page hands-free. Liked the ride?</p><div class="row"><a class="btn" href="https://github.com/ShayanHussainSB/scroller"><svg width="15" height="15" viewBox="0 0 12 12" aria-hidden="true"><path d="M6 1l1.5 3.2 3.5.4-2.6 2.3.7 3.5L6 8.7 2.9 10.4l.7-3.5L1 4.6l3.5-.4z" fill="currentColor"/></svg>Star on GitHub</a><button class="btn alt" type="button" data-tip>Buy me a coffee</button></div><button class="x" type="button" aria-label="Close" data-thanks-x><svg width="16" height="16" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 4l12 12M16 4L4 16" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg></button></aside>
 <p class="sr" role="status" aria-live="polite" id="say"></p>
 
 <template id="t-novel">
@@ -1352,6 +1458,22 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
     <p>By the time the sky turned the colour of weak tea she had read four chapters and could not have said which station they had passed, or when the conductor had stopped coming by, or how long the book had been closed on her lap while she slept with her cheek against the cold window.</p>
   </div>
 </template>
+
+<dialog class="tip" id="support" aria-labelledby="h-tip">
+  <form method="dialog"><button class="x" aria-label="Close"><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 4l12 12M16 4L4 16" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg></button></form>
+  <svg class="cup" viewBox="0 0 74 74" aria-hidden="true"><g class="steam" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M26 26c-4-5 4-8 0-14"/><path d="M36 26c-4-5 4-8 0-14"/><path d="M46 26c-4-5 4-8 0-14"/></g><path d="M16 34h40v10c0 11-9 18-20 18S16 55 16 44z" fill="currentColor"/><path d="M56 38h4a6 6 0 0 1 0 12h-6" fill="none" stroke="currentColor" stroke-width="4"/><path d="M10 66h52" stroke="currentColor" stroke-width="4" stroke-linecap="round"/></svg>
+  <h2 id="h-tip">Buy me a <span class="sfx">coffee.</span></h2>
+  <p>Scroller is free, with no ads and no paid tier. If it carried you through a long night of chapters, a coffee helps keep the next ones coming.</p>
+  <ul class="coins">
+    <li><b>SOL</b><span><small>Solana</small><code>3WAAfuHST8zCJu9zbYT4VwAi2azWDL37jANMqkqwaCNW</code></span><button type="button" data-copy="3WAAfuHST8zCJu9zbYT4VwAi2azWDL37jANMqkqwaCNW" aria-label="Copy Solana address">Copy</button></li>
+    <li><b>ETH</b><span><small>Ethereum</small><code>0x2e50ffD0C72CD0a04Bd711EDEE813ceF17781B5e</code></span><button type="button" data-copy="0x2e50ffD0C72CD0a04Bd711EDEE813ceF17781B5e" aria-label="Copy Ethereum address">Copy</button></li>
+    <li><b>BTC</b><span><small>Bitcoin</small><code>bc1qt8qzgy3tw8g592z8n6vavt08zeh48jsgan0clz</code></span><button type="button" data-copy="bc1qt8qzgy3tw8g592z8n6vavt08zeh48jsgan0clz" aria-label="Copy Bitcoin address">Copy</button></li>
+    <li><b>BNB</b><span><small>BNB Smart Chain</small><code>0x2e50ffD0C72CD0a04Bd711EDEE813ceF17781B5e</code></span><button type="button" data-copy="0x2e50ffD0C72CD0a04Bd711EDEE813ceF17781B5e" aria-label="Copy BNB Smart Chain address">Copy</button></li>
+  </ul>
+  <p class="fine">Send each coin only on its own network. ETH and BNB share one address; send BNB on BNB Smart Chain (BEP-20). Crypto can't be sent back, so check the first and last few characters after you paste.</p>
+  <p class="alt">No crypto? <a href="https://github.com/ShayanHussainSB/scroller">Star the repo</a>, tell a friend who reads, or <a href="https://github.com/ShayanHussainSB/scroller/discussions/categories/ideas">share an idea</a>. That helps too.</p>
+  <p class="shared" data-copied aria-live="polite"></p>
+</dialog>
 
 <script>
 (() => {
@@ -1374,6 +1496,23 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
     for (const o of $$('[data-other]')) o.innerHTML = `Also for <a data-dl="chrome" href="https://github.com/${REPO}/releases/latest">Chrome, Edge, Brave, Arc</a>`;
   }
   if (phone) { $$('.kb-hint').forEach((e) => (e.hidden = true)); $$('.touch-hint').forEach((e) => (e.hidden = false)); }
+
+  // ── Support: open on any [data-tip] or a link to #support; copy an address with one click ──
+  const tip = $('#support');
+  const openTip = () => { if (!tip.open) tip.showModal(); };
+  for (const b of $$('[data-tip]')) b.addEventListener('click', (e) => { e.preventDefault(); openTip(); });
+  const fromHash = () => { if (location.hash === '#support') openTip(); };
+  addEventListener('hashchange', fromHash); fromHash();
+  tip.addEventListener('close', () => { if (location.hash === '#support') history.replaceState(null, '', location.pathname + location.search); });
+  tip.addEventListener('click', (e) => { if (e.target === tip) { const r = tip.getBoundingClientRect(); if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) tip.close(); } });
+  for (const b of $$('[data-copy]')) b.addEventListener('click', async () => {
+    const name = b.getAttribute('aria-label').replace('Copy ', '');
+    try { await navigator.clipboard.writeText(b.dataset.copy); }
+    catch { getSelection().selectAllChildren(b.parentElement.querySelector('code')); $('[data-copied]').textContent = 'Selected. Press Ctrl+C or Cmd+C to copy.'; return; }
+    for (const o of $$('[data-copy]')) { o.classList.remove('done'); o.textContent = 'Copy'; }
+    b.classList.add('done'); b.textContent = 'Copied!';
+    $('[data-copied]').textContent = `${name} copied.`;
+  });
   for (const b of $$('[data-share]')) b.addEventListener('click', async () => {
     const url = 'https://shayanhussainsb.github.io/scroller/';
     const note = $('[data-shared]', b.parentElement.parentElement) || $('[data-shared]');
@@ -1733,6 +1872,12 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
   const sitePill = $('#sitepill');
   let hideTimer, step = 1.25;
   const say = (t) => { $('#say').textContent = ''; setTimeout(() => ($('#say').textContent = t), 30); };
+  // reaching the bottom hands-free is the one moment we ask for a star or a coffee, once per visit
+  const thanks = $('#thanks');
+  let thanked = false;
+  const theEnd = () => { if (thanked) return; thanked = true; thanks.hidden = false; };
+  $('[data-thanks-x]').addEventListener('click', () => (thanks.hidden = true));
+  thanks.addEventListener('click', (e) => e.target.closest('a, [data-tip]') && (thanks.hidden = true));
   const site = {
     on: false, held: false, level: 0, y: 0, set: -1, pausedUntil: 0, pilled: 0,
     toggle() { this.on ? this.stop('Stopped') : this.start(); },
@@ -1760,7 +1905,7 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
       this.y = Math.min(max, this.y + sp.v.px * this.level * dt);
       if (Math.abs(this.y - scrollY) >= .5) scrollTo(0, this.y);
       this.set = scrollY;
-      if (this.y >= max - .5) return this.stop('Stopped');
+      if (this.y >= max - .5) { this.stop('Stopped'); return theEnd(); }
       if (now - this.pilled > 250) this.render();
     },
     render(msg) {
@@ -1816,7 +1961,7 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
 
   // ── Nav: chapter you're in, a sliding marker, and reading progress along the bottom ──
   const nav = $('#nav'), ind = $('#chapters .ind'), links = $$('#chapters a'), menuLinks = $$('#chmenu a');
-  const NAMES = { top: ['CH.0', 'Intro'], speed: ['CH.1', 'Your pace'], feel: ['CH.2', 'Pages'], night: ['CH.3', '2 a.m.'], bedtime: ['CH.4', 'Binge'], keys: ['CH.5', 'Keys'], popup: ['CH.5', 'Keys'], privacy: ['CH.5', 'Keys'], install: ['CH.6', 'Install'], faq: ['FAQ', 'Questions'], end: ['END', 'One more?'] };
+  const NAMES = { top: ['CH.0', 'Intro'], speed: ['CH.1', 'Your pace'], feel: ['CH.2', 'Pages'], night: ['CH.3', '2 a.m.'], bedtime: ['CH.4', 'Binge'], keys: ['CH.5', 'Keys'], popup: ['CH.5', 'Keys'], privacy: ['CH.5', 'Keys'], install: ['CH.6', 'Install'], faq: ['OMAKE', 'Reader mail'], end: ['END', 'One more?'] };
   const NAV_FOR = { keys: 'bedtime', popup: 'bedtime', privacy: 'bedtime', faq: 'install', end: 'install' };
   let current = '';
   function setChapter(id) {

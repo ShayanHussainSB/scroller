@@ -330,6 +330,12 @@ Paper with a 3px manga-ink inset border, square, tilted slightly, with soft shad
 ### Fanned Gallery
 Five popup screenshots at 14px radius, fanned from -5 to 5 degrees and dropped at the ends. Hover straightens and lifts one; on scroll they deal in from below. Flat on small screens.
 
+### Reader Mail (omake Q&A)
+The FAQ is the volume's back-matter corner. Each question is a paper speech bubble (2.5px ink inset, 34px radius, drawn tail), alternating left and right at under a degree of tilt, popping in as it scrolls into view. A hollow "?!" sits in each bubble and fills to a solid "!" when opened. Each answer is an ink-panel caption box with a black "THE READER" tag, answered by the strip's reader, and wipes in left to right on every open. Native details and summary underneath.
+
+### Coffee Dialog and End Bubble
+Support lives in one native modal dialog: an ink panel over a halftone backdrop with an inked coffee cup whose steam rises, an "sfx" headline stroked in ink, and one row per coin (black ticker tag, monospace address, ink pill Copy button that flips to paper on "Copied!"). Anything with data-tip, or a link to #support, opens it. When a reader's hands-free run reaches the bottom of the page, a paper speech bubble rises above the speed pill once per visit with Star and Coffee buttons. Elsewhere support is a quiet underlined line, never a banner.
+
 ### Finale and Colophon Footer
 The last section is a manga last page: screentone fading down, a second burst, the "One more chapter?" headline, an S key that restarts the page, and a tilted ink-bordered strip panel with a black "To be continued" box. The footer carries a colophon card (fine type in a line-2 box), three link columns, and a giant hollow "Scroller." whose period strokes ink, and fills red while the page runs.
 

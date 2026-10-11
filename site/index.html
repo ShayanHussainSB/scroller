@@ -1507,8 +1507,15 @@ FINISH: unreviewed and undocumented is unfinished; this build ends with the fini
   tip.addEventListener('click', (e) => { if (e.target === tip) { const r = tip.getBoundingClientRect(); if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) tip.close(); } });
   for (const b of $$('[data-copy]')) b.addEventListener('click', async () => {
     const name = b.getAttribute('aria-label').replace('Copy ', '');
-    try { await navigator.clipboard.writeText(b.dataset.copy); }
-    catch { getSelection().selectAllChildren(b.parentElement.querySelector('code')); $('[data-copied]').textContent = 'Selected. Press Ctrl+C or Cmd+C to copy.'; return; }
+    // the Clipboard API needs https or localhost; over file:// (or if it's refused) copy the selected address the old way
+    let ok = false;
+    try { await navigator.clipboard.writeText(b.dataset.copy); ok = true; } catch {}
+    if (!ok) {
+      getSelection().selectAllChildren(b.parentElement.querySelector('code'));
+      try { ok = document.execCommand('copy'); } catch {}
+      if (!ok) { $('[data-copied]').textContent = 'Selected. Press Ctrl+C or Cmd+C to copy.'; return; }
+      getSelection().removeAllRanges();
+    }
     for (const o of $$('[data-copy]')) { o.classList.remove('done'); o.textContent = 'Copy'; }
     b.classList.add('done'); b.textContent = 'Copied!';
     $('[data-copied]').textContent = `${name} copied.`;
